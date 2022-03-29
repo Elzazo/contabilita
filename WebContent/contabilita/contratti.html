@@ -116,8 +116,10 @@
 		 function doGet(url){
 			$.get( url, {}, function(data) { 
 								var oResult = $.parseJSON(data);
-								rows = oResult["result"];							
-								drawTableBody();
+								rows = oResult["result"];
+								// only for the first time we sort desc by data fattura
+								sortDown(DATAFATTURA);
+								drawTableBody();								
 							}, 
 				"text");
 		 }
