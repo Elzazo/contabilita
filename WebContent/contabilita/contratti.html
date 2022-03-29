@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="">
+      <meta name="author" content="Aldo Lezza">
+      <title>Monitoraggio contratti</title>
+      <!-- Bootstrap core CSS -->
+      <link href="../assets/dist/css/bootstrap.min.css" rel="stylesheet">
+      <link href="../icons/bootstrap-icons.css" rel="stylesheet">
+	  <link href="../icons/file-earmark-text-fill.png" rel="icon">
+      <style>
+         .bd-placeholder-img {
+         font-size: 1.125rem;
+         text-anchor: middle;
+         -webkit-user-select: none;
+         -moz-user-select: none;
+         user-select: none;
+         }
+         @media (min-width: 768px) {
+         .bd-placeholder-img-lg {
+         font-size: 3.5rem;
+         }
+         }
+      </style>
+      <script src="../jquery/jquery-3.6.0.js"></script>
+      <script type="text/javascript">
+         <!-- Implement inline modification of the row (transition from text to input elements) -->
+         function ajaxDeleteRow(id, name){
+           	    $.post( '../postDelete.html', id, function(){
+           													// nothing to do, will check the results
+           												}).done(function() {
+           														alert('Fattura '+name+' cancellata correttamente.');
+           														deleteRow(id);
+           														}
+           													   ).fail(function() {
+           																alert('Errore durante la cancellazione della fattura '+name);
+           																}
+           													          );
+           }
+         
+           function deleteRow(id){
+         document.getElementById(id).remove();
+           }
+           
+           function saveRow(id, name){
+         if (window.confirm('Salvare la fattura '+document.getElementById(name).value+'?')){
+         saveRow();
+         }
+           }
+         
+         function saveField(fieldName, fieldValue, td, originalValue, tdOnDbClick){
+         var arg = {};
+         arg.fieldName = fieldName;
+         arg.fieldValue = fieldValue;
+         $.post( '../postUpdateField.html', arg , function(){
+           													// nothing to do, will check the results
+           												}).done(function() {
+           														alert('Campo '+fieldName+' aggiornato correttamente.');
+         									restoreInnerHtml(td, fieldValue, tdOnDbClick);
+           														}
+           													   ).fail(function() {
+           																alert('Errore durante l\'aggiornamento del campo '+fieldName+ ' con il valore '+fieldValue);
+         											restoreInnerHtml(td, originalValue, tdOnDbClick);
+           																}
+           													          );
+         
+         }
+         
+         function getFornitori() {
+		 
+         // TODO: replace with ajax call to Fornitori
+         var res = [];
+         {
+         var enel = {};
+         enel.id = 1;
+         enel.value = "Enel Energia S.P.A.";
+         res[0] = enel;
+         }
+         return res;
+         }
+		 
+		 var rows;
+		 var test=false;
+		 
+		 function getDummyFatture() {
+			const o1 = {
+				id: 1, 
+				capitolo:"2288", 
+				fattura:"500", 
+				dataFattura:"11/03/2022", 
+				importo: "1.234,56", 
+				fornitore: "Enel Energia S.P.A.", 
+				contratto: "Contratto", 
+				decretosg: "50", 
+				datadecreto: "24/03/2022"
+			};
+			
+			const o2 = {
+				id: 2, 
+				capitolo:"2287", 
+				fattura:"100", 
+				dataFattura:"01/03/2022", 
+				importo: "4.000,56", 
+				fornitore: "Buffetti S.P.A.", 
+				contratto: "Discrezionale", 
+				decretosg: "2", 
+				datadecreto: "02/03/2022"
+			};
+			
+			return [o1, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2, o2];
+		 }
+		 
+		 
+		 function doGet(url){
+			$.get( url, {}, function(data) { 
+								var oResult = $.parseJSON(data);
+								rows = oResult["result"];							
+								drawTableBody();
+							}, 
+				"text");
+		 }
+		 
+		 
+		 function getFatture() {
+			if (test){
+				rows = getDummyFatture();
+				drawTableBody();
+			} else {
+				<!-- implement remote call to Tomcat -->
+				rows = doGet("../ReadContratti");
+			}
+			return rows;
+		 }
+         
+         
+      </script>
+      <script type="text/javascript">	  
+         function restoreInnerHtml(td, innerHTML, tdOnDbClick){
+         	// restoring just the innerHTML deletes the input element
+         	td.innerHTML=innerHTML;
+         	td.setAttribute("ondblclick", tdOnDbClick);
+         }
+         
+         function createInputElementTag() {
+             return document.createElement("input");
+         }
+         function createATag() {
+             return document.createElement("a");
+         }
+         function createImgTag() {
+             return document.createElement("img");
+         }
+         
+         function createDivTag() {
+             return document.createElement("div");
+         }
+         
+         function createSelectTag() {
+             return document.createElement("select");
+         }
+         
+         function createOptionTag() {
+         	return document.createElement("option");
+         }
+         
+         
+         function enableTextInputElement(td, id, pixelWidth, placeholder,ariaLabel, value){
+         // e.g. <input id="2-fattura" style="width:100px" type="text" class="form-control" placeholder="Es. 1/PA" aria-label="Numero della fattura" aria-describedby="basic-addon2" value="1/PA">
+         	
+         	var ie = createInputElementTag();
+         	ie.setAttribute("id", id.replace("td", ""));
+         	ie.setAttribute("style", "width:"+pixelWidth+"px");
+         	ie.setAttribute("type", "text");
+         	ie.setAttribute("class", "form-control input-sm");
+         	ie.setAttribute("placeholder", placeholder);
+         	ie.setAttribute("aria-label", ariaLabel);
+         	ie.setAttribute("aria-describedby", "basic-addon2");
+         	ie.setAttribute("title", "Premi Invio per salvare i dati, Esc per annullare");
+         	ie.setAttribute("value", value);
+         	// removing the double click from tunneling
+         	var tdOnDbClick = td.getAttribute("ondblclick");
+         	td.removeAttribute("ondblclick");
+         	// on Escape Key the field won't be updated and the value will be restored
+         	ie.addEventListener("keyup", function(event) {
+         									if(event.keyCode === 27){
+         									   //Esc key was pressed
+         									   restoreInnerHtml(td, value, tdOnDbClick);
+         									   return;
+         								   }
+         								   
+         								   if (event.keyCode === 13) {
+         										// Enter Key was pressed, saving...
+         										var fieldName = id.substring(id.indexOf("-")+1);
+         										var fieldValue = ie.getAttribute("value");
+         										saveField(fieldName, ie.value, td, value, tdOnDbClick);
+         									}
+         								});
+         								
+         	td.innerHTML = "";
+         	td.appendChild(ie);
+         	ie.focus();
+         					
+         }
+         
+         function enableSelectForContratto(td, id, pixelWidth, value) {
+         	/*
+         		<select style="width:115px" id="2-contratto" class="form-control">
+         			<option selected>Contratto</option>
+         			<option>Discrezionale</option>
+         		</select>
+         	*/
+         	var ie = createSelectTag();
+         	ie.setAttribute("style", "width:"+pixelWidth+"px");
+         	ie.setAttribute("id", id.replace("td", ""));
+         	ie.setAttribute("class", "form-select");
+         	ie.setAttribute("title", "Cambia valore per salvare i dati, Esc per annullare");
+         
+         	
+         	// removing the double click from tunneling
+         	var tdOnDbClick = td.getAttribute("ondblclick");
+         	td.removeAttribute("ondblclick");
+         	td.innerHTML = "";
+         	
+         	var contratto = createOptionTag();
+         	var discrezionale = createOptionTag();
+         	
+         	ie.appendChild(contratto);
+         	contratto.innerHTML="Contratto";
+         	ie.appendChild(discrezionale);
+         	discrezionale.innerHTML="Discrezionale";
+         	
+         	if ("Contratto" == value) {
+         		contratto.selected = "selected"
+         	}else if ("Discrezionale" == value) {
+         		discrezionale.selected = "selected"
+         	}
+         	
+         	ie.addEventListener("change", function() {
+         									   var fieldName = id.substring(id.indexOf("-")+1);
+         									   saveField(fieldName, ie.value, td, value, tdOnDbClick);	
+         								  });
+         	ie.addEventListener("keyup", function(event) {
+         									if(event.keyCode === 27){
+         									   //Esc key was pressed
+         									   restoreInnerHtml(td, value, tdOnDbClick);
+         									   return;
+         								   }
+         								});
+         	td.appendChild(ie);
+         	ie.focus();
+         }
+         
+         
+         function enableSelectForCapitolo(td, id, pixelWidth, value) {
+         	/*
+         		<select style="width:90px" id="2-capitolo" class="form-select">
+         			 <option selected>2286</option>
+         			 <option>2287</option>
+         			 <option>2288</option>
+         			 <option>2291</option>
+         			 <option>2292</option>
+         			 <option>2293</option>
+         			 <option>2294</option>
+         			 <option>2297</option>
+         			 <option>2298</option>
+         			 <option>2301</option>
+         			 <option>2302</option>
+         			 <option>2303</option>
+         			 <option>5250</option>
+         			 <option>5251</option>
+         			 <option>5252</option>
+         			 <option>5253</option>
+         		</select>		
+         	*/
+         	var ie = createSelectTag();
+         	ie.setAttribute("style", "width:"+pixelWidth+"px");
+         	ie.setAttribute("id", id.replace("td", ""));
+         	ie.setAttribute("class", "form-select");
+         	ie.setAttribute("title", "Cambia valore per salvare i dati");
+         
+         	
+         	// removing the double click from tunneling
+         	var tdOnDbClick = td.getAttribute("ondblclick");
+         	td.removeAttribute("ondblclick");
+         	td.innerHTML = "";
+         	
+         	var capitoli= ["2286","2287","2288", "2291","2292","2293","2294","2297","2298","2301","2302","2303","5250","5251","5252","5253"];
+         	for (let i = 0; i < capitoli.length; i++) {
+         		  var cap = createOptionTag();
+				  if (value == capitoli[i]){
+         				cap.selected="selected";
+         		  }
+         		  cap.innerHTML=capitoli[i];
+         		  ie.appendChild(cap);
+         	}
+         	
+         	td.appendChild(ie);
+         	ie.focus();
+         	ie.addEventListener("change", function() {
+         									   var fieldName = id.substring(id.indexOf("-")+1);
+         									   saveField(fieldName, ie.value, td, value, tdOnDbClick);	
+         								  });
+         	ie.addEventListener("keyup", function(event) {
+         									if(event.keyCode === 27){
+         									   //Esc key was pressed
+         									   restoreInnerHtml(td, value, tdOnDbClick);
+         									   return;
+         								   }
+         								});
+         }
+         
+         function enableSelectForFornitore(td, id, pixelWidth, value) {
+         	/*
+         		<select style="width:90px" id="2-fornitore" class="form-select">
+         			 <option selected>Enel S.P.A.</option>
+         		</select>		
+         	*/
+         	var ie = createSelectTag();
+         	ie.setAttribute("style", "width:"+pixelWidth+"px");
+         	ie.setAttribute("id", id);
+         	ie.setAttribute("class", "form-select");
+         	ie.setAttribute("title", "Cambia valore per salvare i dati");
+         
+         	
+         	// removing the double click from tunneling
+         	var tdOnDbClick = td.getAttribute("ondblclick");
+         	td.removeAttribute("ondblclick");
+         	td.innerHTML = "";
+         	
+         	var fornitori= getFornitori();
+         	for (let i = 0; i < fornitori.length; i++) {
+         		  // <!--  add ID in input element -->
+         		  var forn = createOptionTag();
+         		  if (value == fornitori[i].value){
+         				forn.selected="selected";
+         		  }
+         		  forn.innerHTML=fornitori[i].value;
+         		  ie.appendChild(forn);
+         	}
+         	
+         	td.appendChild(ie);
+         	ie.focus();
+         	ie.addEventListener("change", function() {
+         									   var fieldName = id.substring(id.indexOf("-")+1);
+         									   saveField(fieldName, ie.value, td, value, tdOnDbClick);	
+         								  });
+         	ie.addEventListener("keyup", function(event) {
+         									if(event.keyCode === 27){
+         									   //Esc key was pressed
+         									   restoreInnerHtml(td, value, tdOnDbClick);
+         									   return;
+         								   }
+         								});
+         }
+         
+         
+         
+         function enableDateInputElement(td, id, pixelWidth, ariaLabel, value){
+         	// <input id="2-data-fattura" style="width:175px" id="2-data-decreto" type="date" class="form-control it-date-datepicker" aria-label="Data Fattura" aria-describedby="basic-addon2" value="2022-03-22" >
+         	var ie = createInputElementTag();
+         	ie.setAttribute("id", id.replace("td", ""));
+         	ie.setAttribute("style", "width:"+pixelWidth+"px");
+         	ie.setAttribute("type", "date");
+         	ie.setAttribute("class", "form-control it-date-datepicker");
+         	ie.setAttribute("aria-label", ariaLabel);
+         	ie.setAttribute("aria-describedby", "basic-addon2");
+         	ie.setAttribute("title", "Cambia data per salvare i dati");
+         	var undef;
+         	if (value != undef && value != "") {
+         		var splitted = value.split("\/");
+         		ie.setAttribute("value", splitted[2]+"-"+splitted[1]+"-"+splitted[0]);
+         	}
+         	// removing the double click from tunneling
+         	var tdOnDbClick = td.getAttribute("ondblclick");
+         	td.removeAttribute("ondblclick");
+         	// on Escape Key the field won't be updated and the value will be restored
+         	ie.addEventListener("keyup", function(event) {
+         									if(event.keyCode === 27){
+         									   //Esc key was pressed
+         									   restoreInnerHtml(td, value, tdOnDbClick);
+         									   return;
+         								   }
+         								   
+         								   if (event.keyCode === 13) {
+         										// Enter Key was pressed, saving...
+         										var fieldName = id.substring(id.indexOf("-")+1);
+         										saveField(fieldName, ie.value, td, value, tdOnDbClick);
+         									}
+         								});
+         	ie.addEventListener("input", function() {
+         									   var fieldName = id.substring(id.indexOf("-")+1);
+         									   var fieldValue = ie.value;
+         									   var s = fieldValue.split('-');
+         									   var actualValue = s[2]+"\/"+s[1]+"\/"+s[0];
+         									   saveField(fieldName, actualValue, td, value, tdOnDbClick);	
+         								  });
+         								
+         	td.innerHTML = "";
+         	td.appendChild(ie);
+         	ie.focus();
+         					
+         }
+         
+		 const CAPITOLO="capitolo";
+		 const FATTURA = "fattura";
+		 const DATAFATTURA = "dataFattura";
+		 const IMPORTO = "importo";
+		 const FORNITORE = "fornitore";
+		 const CONTRATTO = "contratto";
+		 const DECRETOSG = "decretosg";
+		 const DATADECRETO = "datadecreto";
+		 
+		 
+         var idList=[CAPITOLO, FATTURA, DATAFATTURA, IMPORTO, FORNITORE, CONTRATTO, DECRETOSG, DATADECRETO];
+         // holds the current state of each edit entire row image
+         var toggleEditMap = new Map();
+         
+         
+         function enableModifyEntireRow(rowId, aElemId) {
+             var enable = true; // by default we plan to modify
+         	// if the map holds true, it means that on click 
+         	// every object has to be set into edit mode
+         	if (!toggleEditMap.has(aElemId)){
+         		toggleEditMap.set(aElemId, true);				
+         	}else {
+         	    enable = toggleEditMap.get(aElemId);
+         	}
+         	
+         	var img = document.getElementById(aElemId);
+            img.setAttribute("title", enable? "Annulla le modifiche" : "Modifica la riga");
+         	for (let i = 0; i<idList.length; i++){
+         		var event;
+         		if (enable) {
+         		    // propagating a double click to enable editing
+         			event = document.createEvent('Event');
+         			event.initEvent('dblclick', false, true);
+         			document.getElementById(rowId+"-"+idList[i]+"-td").dispatchEvent(event);
+         		}else {
+         			// propagating an Esc hit to disable editing
+         			event=new KeyboardEvent("keyup", { key: "Esc", code: 27, keyCode: 27 } );
+         			document.getElementById(rowId+"-"+idList[i]).dispatchEvent(event);
+         		}
+         	}
+         	
+         	// reversing for next iteration
+         	toggleEditMap.set(aElemId, !enable);
+         }
+         
+      </script>
+      <script>
+         /*
+         
+         {
+         
+         <!-- id ["capitolo", "fattura", "dataFattura", "importo", "contratto", "decretosg", "datadecreto" ] -->
+                  <tr id="1" class="text-center">
+                     <td scope="col"><input class="form-check-input" type="checkbox" value="" id="1"></td>
+                     <td scope="col" id="1-capitolo-td" title="Fare doppio click per modificare il campo" ondblclick="enableSelectForCapitolo(this, '1-capitolo', 90, '2287');">2287</td>
+                     <td scope="col" id="1-fattura-td" title="Fare doppio click per modificare il campo" ondblclick="enableTextInputElement(this, '1-fattura', 100, 'Es. 1/PA', 'Numero della fattura', this.innerHTML);">1/PA</td>
+                     <td scope="col" id="1-dataFattura-td" title="Fare doppio click per modificare il campo" ondblclick="enableDateInputElement(this, '1-dataFattura', 175, 'Data Fattura', '11/03/2022');">11/03/2022</td>
+                     <td scope="col" id="1-importo-td" title="Fare doppio click per modificare il campo" ondblclick="enableTextInputElement(this, '1-importo', 100, 'Es. 50', 'Importo fattura', this.innerHTML);">1.143,22€</td>
+                     <td scope="col" id="1-fornitore-td" title="Fare doppio click per modificare il campo" ondblclick="enableSelectForFornitore(this, '1-fornitore', 250, 'Enel Energia S.P.A.');">Enel Energia S.P.A.</td>
+                     <td scope="col" id="1-contratto-td" title="Fare doppio click per modificare il campo" ondblclick="enableSelectForContratto(this, '1-contratto', 150, 'Contratto');" >Contratto</td>
+                     <td scope="col" id="1-decretosg-td" title="Fare doppio click per modificare il campo" ondblclick="enableTextInputElement(this, '1-decretosg', 100, 'Es. 50', 'Decreto SG', this.innerHTML);">50</td>
+                     <td scope="col" id="1-datadecreto-td" title="Fare doppio click per modificare il campo" ondblclick="enableDateInputElement(this, '1-datadecreto', 175, 'Data Decreto SG', '22/03/2022');">22/03/2022</td>
+                     <td scope="col">
+                        <a style="text-decoration:none;" onclick="enableModifyEntireRow('1', '1-modify');" href="#">
+                        <img id="1-modify" src="../icons/pencil.svg" title="Modifica la riga"/>
+                        </a>
+                        <a style="text-decoration:none;" onclick="window.alert('Funzione di duplicazione non ancora implementata.')" href="#">
+                        <img src="../icons/check-all.svg" title="Duplica la riga"/>
+                        </a>
+                        <a style="text-decoration:none;" onclick="if (window.confirm('Cancellare la fattura 1/PA?')) { ajaxDeleteRow('1', '1/PA');}" href="#" >
+                        <img src="../icons/x-square.svg" title="Cancella la riga"/>
+                        </a>
+                     </td>
+                  </tr>
+         
+         
+         }
+         
+         
+         
+         */
+		 
+		 function createTrTag() {
+			var tr = document.createElement("tr");
+			tr.setAttribute("class", "text-center");
+			return tr;
+		 }
+		 
+		 function createTdTag() {
+			var tr = document.createElement("td");
+			tr.setAttribute("scope", "col");
+			tr.setAttribute("title", "Fare doppio click per modificare il campo");
+			return tr;
+		 }
+		 
+		 var dbclicks = ["enableSelectForCapitolo(this, 'myid-capitolo', 90, 'myvalue');",
+		 "enableTextInputElement(this, 'myid-fattura', 100, 'Es. 1/PA', 'Numero della fattura', this.innerHTML);",
+		 "enableDateInputElement(this, 'myid-dataFattura', 160, 'Data Fattura', 'myvalue');",
+		 "enableTextInputElement(this, 'myid-importo', 100, 'Es. 50', 'Importo fattura', this.innerHTML);",
+		 "enableSelectForFornitore(this, 'myid-fornitore', 250, 'myvalue');",
+		 "enableSelectForContratto(this, 'myid-contratto', 150, 'myvalue');",
+		 "enableTextInputElement(this, 'myid-decretosg', 100, 'Es. 50', 'Decreto SG', this.innerHTML);",
+		 "enableDateInputElement(this, 'myid-datadecreto', 160, 'Data Decreto SG', '22/03/2022');"
+		 ]
+		 
+     	 var rows;
+		 
+		 function clearTableBody() {
+			document.getElementById("table-body").innerHTML="";
+		 }
+		 
+		 function toggleVisibility(elem){
+			elem.setAttribute("style", "display:none");
+		 }
+		 
+		 function doDrawTableBody() {
+			 getFatture();
+		 }
+		 
+		 function drawTableBody(){
+			var tableBody = document.getElementById("table-body");
+			{
+				// adding the filter's top row
+				/*{
+					var tr = createTrTag();
+					tr.setAttribute("id", "tr-filter")
+					var td = document.createElement("td");
+					//td.setAttribute("scope", "col");
+					{
+						var img = createImgTag();
+						img.setAttribute("id", "filterImg");
+						img.setAttribute("title", "Applica i filtri all'intera tabella");
+						img.setAttribute("src", "../icons/funnel.svg");
+						img.setAttribute("onClick", "toggleVisibility(document.getElementById('tr-filter'));");
+						td.appendChild(img);
+					}
+					tr.appendChild(td);
+					for (let j = 0; j<idList.length; j++) {
+						var td = createTdTag();
+						// first version: every field is a text field
+						//<input id="1-fattura" style="width:100px" type="text" class="form-control input-sm" placeholder="Es. 1/PA" aria-label="Numero della fattura" aria-describedby="basic-addon2" title="Premi Invio per salvare i dati, Esc per annullare" value="500">
+						var inputEl = createInputElementTag();
+						inputEl.setAttribute("type", "text");
+						inputEl.setAttribute("title", "Premi Invio per salvare i dati, Esc per annullare");
+						inputEl.setAttribute("style", "width:50%");
+						td.appendChild(inputEl);
+						tr.appendChild(td);
+					}
+					tr.appendChild(createTdTag());
+					
+					tableBody.appendChild(tr);
+				}*/
+			}
+			
+			
+			for (let i = 0; i < rows.length; i++){
+				var data = rows[i];
+				var id = data["id"];
+				var tr = createTrTag();
+				{
+					// adding the checkbox
+					var td = document.createElement("td");
+					td.setAttribute("scope", "col");
+					//<input class="form-check-input" type="checkbox" value="" id="1"></td>
+					var checkbox = document.createElement("input");
+					checkbox.setAttribute("class", "form-check-input");
+					checkbox.setAttribute("type", "checkbox");
+					checkbox.setAttribute("id", id+"-checkbox");
+					td.appendChild(checkbox);
+					tr.appendChild(td);
+				}
+				
+				for (let j = 0; j<idList.length; j++) {
+					var field = idList[j];
+					//alert(field);
+					var value = data[field];
+					//alert(value);
+					var td = createTdTag();
+					td.setAttribute("id", id+"-"+field+"-td");
+					var doubleClick = dbclicks[j].replace("myid", id);
+					doubleClick = doubleClick.replace("myvalue", value);
+					td.setAttribute("ondblclick", doubleClick);
+					td.innerHTML=value;
+					tr.appendChild(td);
+				}
+				
+				// action panel
+				{
+					var td = document.createElement("td");
+					td.setAttribute("scope", "col");
+					{
+						var a = createATag();
+						a.setAttribute("style", "text-decoration:none;");
+						a.setAttribute("onclick", onclick="enableModifyEntireRow('"+id+"', '"+id+"-modify');");
+						a.setAttribute("href", "#");
+						var img = createImgTag();
+						img.setAttribute("id", id+"-modify");
+						img.setAttribute("title", "Modifica la riga");
+						img.setAttribute("src", "../icons/pencil.svg");
+						a.appendChild(img);
+						td.appendChild(a);
+					}
+					{
+						var a = createATag();
+						a.setAttribute("style", "text-decoration:none;");
+						a.setAttribute("onclick", onclick="window.alert('Funzione di duplicazione non ancora implementata.');");
+						a.setAttribute("href", "#");
+						var img = createImgTag();
+						img.setAttribute("id", id+"-clone");
+						img.setAttribute("title", "Duplica la riga");
+						img.setAttribute("src", "../icons/check-all.svg");
+						a.appendChild(img);
+						td.appendChild(a);
+					}
+					{
+					    var fattura = data["fattura"];
+						var a = createATag();
+						a.setAttribute("style", "text-decoration:none;");
+						a.setAttribute("onclick", onclick="if (window.confirm('Cancellare la fattura "+fattura+"?')) { ajaxDeleteRow('"+id+"', '"+fattura+"');}");;
+						a.setAttribute("href", "#");
+						var img = createImgTag();
+						img.setAttribute("id", id+"-delete");
+						img.setAttribute("title", "Cancella la riga");
+						img.setAttribute("src", "../icons/x-square.svg");
+						a.appendChild(img);
+						td.appendChild(a);
+					}
+					tr.appendChild(td);
+				}
+				
+				/*
+				
+				<td scope="col">
+                        <a style="text-decoration:none;" onclick="enableModifyEntireRow('myid', 'my-modify');" href="#">
+                        <img id="1-modify" src="../icons/pencil.svg" title="Modifica la riga"/>
+                        </a>
+                        <a style="text-decoration:none;" onclick="window.alert('Funzione di duplicazione non ancora implementata.')" href="#">
+                        <img src="../icons/check-all.svg" title="Duplica la riga"/>
+                        </a>
+                        <a style="text-decoration:none;" onclick="if (window.confirm('Cancellare la fattura 1/PA?')) { ajaxDeleteRow('1', '1/PA');}" href="#" >
+                        <img src="../icons/x-square.svg" title="Cancella la riga"/>
+                        </a>
+                     </td>
+					 
+				*/
+				
+				tableBody.appendChild(tr);
+			}
+		 }
+		 
+		 
+		 function isTextField(fieldName) {
+			return DATADECRETO != fieldName && DATAFATTURA != fieldName && IMPORTO != fieldName;
+		 }
+		 
+		 function isDateField(fieldName) {
+			return DATADECRETO == fieldName || DATAFATTURA == fieldName;
+		 }
+		 
+		 function isNumericField(fieldName) {
+			return IMPORTO == fieldName;
+		 }
+		 
+		 function getDateFromString(dateToParse) {
+		     var fields = dateToParse.split('\/');
+			 return new Date(fields[2], fields[1], fields[0]);	
+		 }
+		 
+		 function getFloatFromString(numberToParse) {
+			return parseFloat(numberToParse.replace('.', '').replace(',', '.'));
+		 }
+		 
+		 function sort(fieldName, asc) {
+			
+			if (isTextField(fieldName)) {
+				rows.sort((a, b) => {
+				    var aa = a[fieldName], bb = b[fieldName];
+					return asc ? ('' + aa).localeCompare(bb) : ('' + bb).localeCompare(aa);
+				}
+				);
+			} else if (isDateField(fieldName)){
+				rows.sort((a, b) => {
+				    var aa = asc ? getDateFromString(a[fieldName]) : getDateFromString(b[fieldName]);
+					var bb = asc ? getDateFromString(b[fieldName]) : getDateFromString(a[fieldName]);
+					
+					if (aa == bb) {
+						return 0;
+					}else if (aa < bb){
+						return -1;
+					}
+					return 1;
+					
+				}
+				);
+			} else if (isNumericField(fieldName)) {
+				rows.sort((a, b) => {
+				    var aa = asc ? getFloatFromString(a[fieldName]) : getFloatFromString(b[fieldName]);
+					var bb = asc ? getFloatFromString(b[fieldName]) : getFloatFromString(a[fieldName]);
+					if (aa == bb) {
+						return 0;
+					}else if (aa < bb){
+						return -1;
+					}
+					return 1;
+				}
+				);
+			}
+			
+			clearTableBody();
+			drawTableBody();
+		 }
+
+         function sortUp(fieldName) {
+			sort(fieldName, true);
+		 }
+		 
+		 function sortDown(fieldName) {
+			sort(fieldName, false);
+		 }
+		 
+      </script>
+   </head>
+   <body onload="doDrawTableBody();">
+      <header>
+         <div class="collapse bg-dark" id="navbarHeader">
+            <div class="container">
+               <div class="row">
+                  <div class="col-sm-8 col-md-7 py-4">
+                     <h4 class="text-white">About</h4>
+                     <p class="text-muted">Add some information about the album below, the author, or any other background context. Make it a few sentences long so folks can pick up some informative tidbits. Then, link them off to some social networking sites or contact information.</p>
+                  </div>
+                  <div class="col-sm-4 offset-md-1 py-4">
+                     <h4 class="text-white">Contact</h4>
+                     <ul class="list-unstyled">
+                        <li><a href="#" class="text-white">Follow on Twitter</a></li>
+                        <li><a href="#" class="text-white">Like on Facebook</a></li>
+                        <li><a href="#" class="text-white">Email me</a></li>
+                     </ul>
+                  </div>
+               </div>
+            </div>
+         </div>
+         <div class="navbar navbar-dark bg-dark shadow-sm" style="background-color:#6ECFEA !important">
+            <div class="container">
+               <a href="#" class="navbar-brand d-flex align-items-center">
+               <strong>Monitoraggio contratti</strong>
+               </a>
+               <!--button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarHeader" aria-controls="navbarHeader" aria-expanded="false" aria-label="Toggle navigation"-->
+               <a href="index.html" >
+               <span style="background-image:url(../icons/arrow-left-white.svg);" class="navbar-toggler-icon" data-toggle="Torna alla pagina principale"></span>
+               </a>
+               </button>
+            </div>
+         </div>
+      </header>
+      <main>
+         <section class="py-5 text-center container">
+            <div class="row py-lg-5">
+               <div class="col-lg-6 col-md-8 mx-auto">
+                  <h1 class="fw-light">Monitoraggio contratti</h1>
+                  <p class="lead text-muted">Sintesi delle spese affrontate dal T.A.R. Sardegna in un determinato anno</p>
+               </div>
+            </div>
+         </section>
+         <div style="min-width:1400px" class="container">		 
+            <table class="table table-hover table-sm">
+               <thead class="thead-light">
+                  <tr>
+                     <th scope="col"></th>
+                     <th class="text-center" scope="col">Cap.<a style="text-decoration:none;" onclick="sortUp(CAPITOLO)" href="#">
+						<img id="1-sortByCapUp" src="../icons/arrow-up-short.svg" title="Ordina per cap (asc)"/>
+						</a>
+						<a style="text-decoration:none;" onclick="sortDown(CAPITOLO)" href="#">
+						<img id="1-sortByCapDown" src="../icons/arrow-down-short.svg" title="Ordina per cap (disc)"/>
+						</a>
+                     </th>
+                     <th class="text-center" scope="col">Fattura<a style="text-decoration:none;" onclick="sortUp(FATTURA)" href="#">
+                        <img id="1-sortByFatturaUp" src="../icons/arrow-up-short.svg" title="Ordina per fattura (asc)"/>
+                        </a>
+                        <a style="text-decoration:none;" onclick="sortDown(FATTURA)" href="#">
+                        <img id="1-sortByFatturaDown" src="../icons/arrow-down-short.svg" title="Ordina per fattura (disc)"/>
+                        </a>
+                     </th>
+                     <!-- arrow-up-short-->
+                     <th class="text-center" scope="col">Data<a style="text-decoration:none;" onclick="sortUp(DATAFATTURA)" href="#">
+                        <img id="1-sortByDataFatturaUp" src="../icons/arrow-up-short.svg" title="Ordina per data fattura (asc)"/>
+                        </a>
+                        <a style="text-decoration:none;" onclick="sortDown(DATAFATTURA)" href="#">
+                        <img id="1-sortByDataFatturaDown" src="../icons/arrow-down-short.svg" title="Ordina per data fattura (disc)"/>
+                        </a>
+                     </th>
+                     <th class="text-center" scope="col">Importo<a style="text-decoration:none;" onclick="sortUp(IMPORTO)" href="#">
+                        <img id="1-sortByImportoUp" src="../icons/arrow-up-short.svg" title="Ordina per importo (asc)"/>
+                        </a>
+                        <a style="text-decoration:none;" onclick="sortDown(IMPORTO)" href="#">
+                        <img id="1-sortByImportoDown" src="../icons/arrow-down-short.svg" title="Ordina per importo (disc)"/>
+                        </a>
+                     </th>
+                     <th class="text-center" scope="col">Fornitore<a style="text-decoration:none;" onclick="sortUp(FORNITORE)" href="#">
+                        <img id="1-sortByFornitoreUp" src="../icons/arrow-up-short.svg" title="Ordina per fornitore (asc)"/>
+                        </a>
+                        <a style="text-decoration:none;" onclick="sortDown(FORNITORE)" href="#">
+                        <img id="1-sortByFornitoreDown" src="../icons/arrow-down-short.svg" title="Ordina per fornitore (disc)"/>
+                        </a>
+                     </th>
+                     <th class="text-center" scope="col">Contratto<a style="text-decoration:none;" onclick="sortUp(CONTRATTO)" href="#">
+                        <img id="1-sortByContrattoUp" src="../icons/arrow-up-short.svg" title="Ordina per contratto (asc)"/>
+                        </a>
+                        <a style="text-decoration:none;" onclick="sortDown(CONTRATTO)" href="#">
+                        <img id="1-sortByContrattoDown" src="../icons/arrow-down-short.svg" title="Ordina per contratto (disc)"/>
+                        </a>
+                     </th>
+                     <th class="text-center" scope="col">Decreto S.G.<a style="text-decoration:none;" onclick="sortUp(DECRETOSG)" href="#">
+                        <img id="1-sortByDecretoUp" src="../icons/arrow-up-short.svg" title="Ordina per decreto (asc)"/>
+                        </a>
+                        <a style="text-decoration:none;" onclick="sortDown(DECRETOSG)" href="#">
+                        <img id="1-sortByDecretoDown" src="../icons/arrow-down-short.svg" title="Ordina per decreto (disc)"/>
+                        </a>
+                     </th>
+                     <th class="text-center" scope="col">Data decreto<a style="text-decoration:none;" onclick="sortUp(DATADECRETO)" href="#">
+                        <img id="1-sortByDataDecretoUp" src="../icons/arrow-up-short.svg" title="Ordina per data decreto (asc)"/>
+                        </a>
+                        <a style="text-decoration:none;" onclick="sortDown(DATADECRETO)" href="#">
+                        <img id="1-sortByDataDecretoDown" src="../icons/arrow-down-short.svg" title="Ordina per data decreto (disc)"/>
+                        </a>
+                     </th>
+                     <th class="text-center" scope="col">Azioni
+                     </th>
+                  </tr>
+               </thead>
+               <tbody id="table-body"/>
+            </table>
+         </div>
+      </main>
+      <footer class="text-muted py-5">
+         <div class="container">
+            <p class="float-end mb-1">
+               <a href="#">Torna in cima</a>
+            </p>
+            <p class="mb-0">Qualcosa da segnalare? Scrivi a <a href="mailTo:a.lezza@giustizia-amministrativa">a.lezza@giustizia-amministrativa.it</a></p>
+         </div>
+      </footer>
+      <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
+   </body>
+</html>
