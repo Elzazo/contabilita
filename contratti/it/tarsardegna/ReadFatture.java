@@ -1,7 +1,7 @@
 package it.tarsardegna;
 
-import it.tarsardegna.persistence.ReadContrattiInterface;
-import it.tarsardegna.persistence.ReadFattureFactory;
+import it.tarsardegna.persistence.fatture.ReadFattureFactory;
+import it.tarsardegna.persistence.fatture.ReadFattureInterface;
 
 import java.io.IOException;
 
@@ -37,7 +37,7 @@ public class ReadFatture extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		ReadContrattiInterface readFatture = ReadFattureFactory.getInterface();
+		ReadFattureInterface readFatture = ReadFattureFactory.getInterface();
 		String res = readFatture.getFatture();
 		System.out.println(res);
 		response.getWriter().println(res);

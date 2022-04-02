@@ -6,14 +6,14 @@ package it.tarsardegna.mock.persistence;
 import java.util.Random;
 
 import it.tarsardegna.mock.model.MockFatturaFactory;
-import it.tarsardegna.persistence.ReadContrattiInterface;
+import it.tarsardegna.persistence.fatture.ReadFattureInterface;
 import it.tarsardegna.util.StringUtils;
 
 /**
  * @author elzaz
  *
  */
-public class MockReadContratti implements ReadContrattiInterface{
+public class MockReadContratti implements ReadFattureInterface{
 
 	@Override
 	public String getFatture() {

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package it.tarsardegna.persistence;
+package it.tarsardegna.persistence.fatture;
 
 import it.tarsardegna.mock.persistence.MockReadContratti;
 
@@ -11,13 +11,13 @@ import it.tarsardegna.mock.persistence.MockReadContratti;
  */
 public class ReadFattureFactory {
 	
-	public final static boolean test = true;
+	public final static boolean test = false;
 	
-	public static ReadContrattiInterface getInterface() {
+	public static ReadFattureInterface getInterface() {
 		if (test){
 			return new MockReadContratti();
 		}
-		return null;
+		return new ReadFattureFromDB();
 	}
 
 }

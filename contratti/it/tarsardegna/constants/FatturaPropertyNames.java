@@ -11,10 +11,16 @@ public enum FatturaPropertyNames {
 	
 	CAPITOLO("capitolo"),
 	FATTURA("fattura"),
-	DATAFATTURA("dataFattura"),
+	DATASDI("datasdi"),
+	SCADENZA("scadenza"),
+	ESERCIZIO("eserciziospesa"),
 	IMPORTO("importo"),
 	CONTRATTO("contratto"),
 	FORNITORE("fornitore"),
+	OGGETTO("oggetto"),
+	PRESTAZIONE("prestazione"),
+	MESE("mese"),
+	VOCEDISPESA("vocespesa"),
 	DECRETOSG("decretosg"),
 	DATADECRETO("datadecreto");
 	

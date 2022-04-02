@@ -30,12 +30,6 @@ public class MockFatturaFactory {
 		}
 
 		{
-			Calendar c = Calendar.getInstance();
-			c.add(Calendar.DAY_OF_YEAR, new Random().nextInt(32));
-			f.setDataFattura(c.getTime());
-		}
-
-		{
 			f.setImporto(Math.abs(new Random().nextFloat() * 100000 % 100000));
 		}
 
