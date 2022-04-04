@@ -149,7 +149,7 @@ public class Fattura implements Jsonable{
 		this.dataDecreto = dataDecreto;
 	}
 
-	public String toJson(boolean addComma) {
+	public String toJson(int tabs) {
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("\t\t{");
@@ -212,15 +212,11 @@ public class Fattura implements Jsonable{
 				false);
 
 		sb.append("\t\t}");
-		if (addComma){
-			sb.append(",");
-		}
-		sb.append(System.lineSeparator());
 		return sb.toString();
 	}
 	
 	public String toJson() {
-		return toJson(false);
+		return toJson(1);
 	}
 
 }

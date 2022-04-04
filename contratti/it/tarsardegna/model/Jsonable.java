@@ -10,5 +10,6 @@ package it.tarsardegna.model;
 public interface Jsonable {
 	
 	public String toJson();
+	public String toJson(int tabs);
 
 }

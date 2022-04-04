@@ -1,3 +1,5 @@
+         //---------------------------------------------------- AJAX CALLS START --------------------------------------------------------
+
 
          function ajaxDeleteRow(id, name){
            	    $.post( '../postDelete.html', id, function(){
@@ -45,16 +47,7 @@
          }
          
          function getFornitori() {
-		 
-         // TODO: replace with ajax call to Fornitori
-         var res = [];
-         {
-         var enel = {};
-         enel.id = 1;
-         enel.value = "Enel Energia S.P.A.";
-         res[0] = enel;
-         }
-         return res;
+        	 return fornitore;
          }
 		 
 		 var rows;
@@ -89,6 +82,34 @@
 		 }
 		 
 		 
+		 var dictionaryUrl='../ReadDictionary?dictionary=';
+		 var capitolo, fornitore, contratto;
+		 
+		 function loadOptionValues() {
+			 doGetDictionary(CAPITOLO);
+			 doGetDictionary(CONTRATTO);
+			 doGetDictionary(FORNITORE);
+		 }
+		 
+		 
+		 function doGetDictionary(dictionary){
+			 $.get( dictionaryUrl + dictionary, {}, function(data) { 
+					var oResult = $.parseJSON(data);
+					var storeResult = oResult["result"];
+					if (CAPITOLO == dictionary){
+						console.log('Dictionary capitolo loaded successfully.');
+						capitolo = storeResult;
+					}else if(CONTRATTO == dictionary){
+						console.log('Dictionary contratto loaded successfully.');
+						contratto = storeResult;
+					}else if(FORNITORE == dictionary){
+						console.log('Dictionary fornitore loaded successfully.');
+						fornitore = storeResult;
+					}
+				}, 
+			 	"text");
+		 }
+		 
 		 function doGet(url){
 			$.get( url, {}, function(data) { 
 								var oResult = $.parseJSON(data);
@@ -107,13 +128,31 @@
 				rows = getDummyFatture();
 				drawTableBody();
 			} else {
-				// <!-- implement remote call to Tomcat -->
 				rows = doGet("../ReadContratti");
 			}
 			return rows;
 		 }
          
+		//---------------------------------------------------- AJAX CALLS END --------------------------------------------------------
          
+		//---------------------------------------------------- DOM MANIPULATION CALLS START --------------------------------------------------------
+		 
+		 var dbclicks = ["enableSelectForCapitolo(this, 'myid-capitolo', 90, 'myvalue');",
+		        		 "enableTextInputElement(this, 'myid-fattura', 100, 'Es. 1/PA', 'Numero della fattura', this.innerHTML);",
+		        		 "enableDateInputElement(this, 'myid-dataDataSdi', 160, 'Data SDI', 'myvalue');",
+		        		 "enableNumberInputElement(this, 'myid-importo', 100, 'Es. 50', 'Importo fattura', this.innerHTML);",
+		        		 "enableTextInputElement(this, 'myid-oggetto', 100, 'Es. Servizio di sorveglianza', 'Oggetto della fattura', this.innerHTML);",
+		        		 "enableTextInputElement(this, 'myid-mese', 100, 'Es. gen-22', 'Mese di competenza', this.innerHTML);",
+		        		 "enableTextInputElement(this, 'myid-prestazione', 100, 'Es. Pulizia locali', 'Prestazione della fattura', this.innerHTML);",
+		        		 "enableDateInputElement(this, 'myid-scadenza', 160, 'Scadenza', 'myvalue');",
+		        		 "enableNumberInputElement(this, 'myid-eserciziospesa', 100, 'Es. 2022', 'Esercizio di spesa', this.innerHTML);",
+		        		 "enableSelectForVoceSpesa(this, 'myid-vocespesa', 250, 'myvalue');",
+		        		 "enableSelectForFornitore(this, 'myid-fornitore', 250, 'myvalue');",
+		        		 "enableSelectForContratto(this, 'myid-contratto', 150, 'myvalue');",
+		        		 "enableTextInputElement(this, 'myid-decretosg', 100, 'Es. 50', 'Decreto SG', this.innerHTML);",
+		        		 "enableDateInputElement(this, 'myid-datadecreto', 160, 'Data Decreto SG', '22/03/2022');"
+		        		 ]
+		 
          function restoreInnerHtml(td, innerHTML, tdOnDbClick){
          	// restoring just the innerHTML deletes the input element
          	td.innerHTML=innerHTML;
@@ -211,18 +250,17 @@
          	td.removeAttribute("ondblclick");
          	td.innerHTML = "";
          	
-         	var contratto = createOptionTag();
-         	var discrezionale = createOptionTag();
+         	console.log('Contratto size:'+contratto.length);
          	
-         	ie.appendChild(contratto);
-         	contratto.innerHTML="CONTRATTO";
-         	ie.appendChild(discrezionale);
-         	discrezionale.innerHTML="DISCREZIONALE";
-         	
-         	if ("CONTRATTO" == value) {
-         		contratto.selected = "selected";
-         	}else if ("DISCREZIONALE" == value) {
-         		discrezionale.selected = "selected";
+         	for (var i = 0; i < contratto.length; i++){
+         		var el = createOptionTag();
+         		var label = contratto[i]["denominazione"];
+         		console.log(label);
+         		el.innerHTML=label;
+         		if (label == value){
+         			el.selected = "selected";
+         		}
+         		ie.appendChild(el);
          	}
          	
          	ie.addEventListener("change", function() {
@@ -242,15 +280,7 @@
          
          
          function enableSelectForCapitolo(td, id, pixelWidth, value) {
-         	/*
-			 * <select style="width:90px" id="2-capitolo" class="form-select">
-			 * <option selected>2286</option> <option>2287</option>
-			 * <option>2288</option> <option>2291</option> <option>2292</option>
-			 * <option>2293</option> <option>2294</option> <option>2297</option>
-			 * <option>2298</option> <option>2301</option> <option>2302</option>
-			 * <option>2303</option> <option>5250</option> <option>5251</option>
-			 * <option>5252</option> <option>5253</option> </select>
-			 */
+         	
          	var ie = createSelectTag();
          	// ie.setAttribute("style", "width:"+pixelWidth+"px");
          	ie.setAttribute("style", "width: 100%");
@@ -264,14 +294,14 @@
          	td.removeAttribute("ondblclick");
          	td.innerHTML = "";
          	
-         	// var capitoli= ["2286","2287","2288",
-			// "2291","2292","2293","2294","2297","2298","2301","2302","2303","5250","5251","5252","5253"];
          	for (var i = 0; i < capitolo.length; i++) {
          		  var cap = createOptionTag();
-				  if (value == capitolo[i]){
+         		  var den = capitolo[i]["denominazione"];
+				  if (value == den){
          				cap.selected="selected";
          		  }
-         		  cap.innerHTML=capitolo[i];
+         		  cap.innerHTML=den;
+         		  cap.setAttribute("myid", capitolo[i]["id"]);
          		  ie.appendChild(cap);
          	}
          	
@@ -299,7 +329,7 @@
 			 */
          	var ie = createSelectTag();
          	// ie.setAttribute("style", "width:"+pixelWidth+"px");
-         	ie.setAttribute("style", "width: 100%")
+         	ie.setAttribute("style", "width: 100%");
          	ie.setAttribute("id", id);
          	ie.setAttribute("class", "form-select");
          	ie.setAttribute("title", "Cambia valore per salvare i dati");
@@ -310,14 +340,16 @@
          	td.removeAttribute("ondblclick");
          	td.innerHTML = "";
          	
-         	var fornitori= getFornitori();
-         	for (var i = 0; i < fornitori.length; i++) {
+         	
+         	for (var i = 0; i < fornitore.length; i++) {
          		  // <!-- add ID in input element -->
          		  var forn = createOptionTag();
-         		  if (value == fornitori[i].value){
+         		  var den = fornitore[i]["denominazione"];
+         		  if (value == den){
          				forn.selected="selected";
          		  }
-         		  forn.innerHTML=fornitori[i].value;
+         		  forn.innerHTML=den;
+         		  forn.setAttribute("myid", fornitore[i]["id"]);
          		  ie.appendChild(forn);
          	}
          	
@@ -389,32 +421,10 @@
          	ie.focus();
          					
          }
+        
+       //---------------------------------------------------- DOM MANIPULATION CALLS START --------------------------------------------------------
          
-         // -----------------------CONSTANTS DEFINITION
-			// START-----------------------------------------------
-         
-         // definition of capitolo
-		 let capitolo = [];
-		 
-		 capitolo[0] = "2286";
-		 capitolo[1] = "2287";
-		 capitolo[2] = "2288";
-		 capitolo[3] = "2291";
-		 capitolo[4] = "2292";
-		 capitolo[5] = "2293";
-		 capitolo[6] = "2294";
-		 capitolo[7] = "2296";
-		 capitolo[8] = "2297";
-		 capitolo[9] = "2298";
-		 capitolo[10] = "2301";
-		 capitolo[11] = "2302";
-		 capitolo[12] = "2303";
-		 capitolo[13] = "2304";
-		 capitolo[14] = "5250";
-		 capitolo[15] = "5251";
-		 capitolo[16] = "5252";
-		 capitolo[17] = "5253";
-		 
+         // -----------------------CONSTANTS DEFINITION START-----------------------------------------------		 
 		 // definition of voci spesa
 		 
 		 let vocispesadef = [
@@ -518,8 +528,6 @@
 		 // }
 		 // }
 		 
-		 
-		 
 		 const CAPITOLO="capitolo";
 		 const FATTURA = "fattura";
 		 const IMPORTO = "importo";
@@ -537,8 +545,7 @@
 		 
          var idList=[CAPITOLO, FATTURA, DATASDI, IMPORTO, OGGETTO, MESE, PRESTAZIONE, SCADENZA, ESERCIZIOSPESA,  VOCESPESA, FORNITORE, CONTRATTO, DECRETOSG, DATADECRETO];
                   
-         // -----------------------CONSTANTS DEFINITION
-			// END-----------------------------------------------
+         // -----------------------CONSTANTS DEFINITION END-----------------------------------------------
 
          
          
@@ -575,39 +582,7 @@
          	// reversing for next iteration
          	toggleEditMap.set(aElemId, !enable);
          }
-         /*
-			 *  {
-			 * 
-			 * <!-- id ["capitolo", "fattura", "dataFattura", "importo",
-			 * "contratto", "decretosg", "datadecreto" ] -->
-			 * <tr id="1" class="text-center"> <td scope="col"><input
-			 * class="form-check-input" type="checkbox" value="" id="1"></td>
-			 * <td scope="col" id="1-capitolo-td" title="Fare doppio click per modificare il campo" ondblclick="enableSelectForCapitolo(this, '1-capitolo', 90, '2287');">2287</td>
-			 * <td scope="col" id="1-fattura-td" title="Fare doppio click per modificare il campo" ondblclick="enableTextInputElement(this, '1-fattura', 100, 'Es. 1/PA', 'Numero della fattura', this.innerHTML);">1/PA</td>
-			 * <td scope="col" id="1-dataFattura-td" title="Fare doppio click per modificare il campo" ondblclick="enableDateInputElement(this, '1-dataFattura', 175, 'Data Fattura', '11/03/2022');">11/03/2022</td>
-			 * <td scope="col" id="1-importo-td" title="Fare doppio click per modificare il campo" ondblclick="enableTextInputElement(this, '1-importo', 100, 'Es. 50', 'Importo fattura', this.innerHTML);">1.143,22€</td>
-			 * <td scope="col" id="1-fornitore-td" title="Fare doppio click per modificare il campo" ondblclick="enableSelectForFornitore(this, '1-fornitore', 250, 'Enel Energia S.P.A.');">Enel
-			 * Energia S.P.A.</td>
-			 * <td scope="col" id="1-contratto-td" title="Fare doppio click per modificare il campo" ondblclick="enableSelectForContratto(this, '1-contratto', 150, 'Contratto');" >Contratto</td>
-			 * <td scope="col" id="1-decretosg-td" title="Fare doppio click per modificare il campo" ondblclick="enableTextInputElement(this, '1-decretosg', 100, 'Es. 50', 'Decreto SG', this.innerHTML);">50</td>
-			 * <td scope="col" id="1-datadecreto-td" title="Fare doppio click per modificare il campo" ondblclick="enableDateInputElement(this, '1-datadecreto', 175, 'Data Decreto SG', '22/03/2022');">22/03/2022</td>
-			 * <td scope="col"> <a style="text-decoration:none;"
-			 * onclick="enableModifyEntireRow('1', '1-modify');" href="#"> <img
-			 * id="1-modify" src="../icons/pencil.svg" title="Modifica la
-			 * riga"/> </a> <a style="text-decoration:none;"
-			 * onclick="window.alert('Funzione di duplicazione non ancora
-			 * implementata.')" href="#"> <img src="../icons/check-all.svg"
-			 * title="Duplica la riga"/> </a> <a style="text-decoration:none;"
-			 * onclick="if (window.confirm('Cancellare la fattura 1/PA?')) {
-			 * ajaxDeleteRow('1', '1/PA');}" href="#" > <img
-			 * src="../icons/x-square.svg" title="Cancella la riga"/> </a> </td>
-			 * </tr>
-			 * 
-			 *  }
-			 * 
-			 * 
-			 * 
-			 */
+         
 		 
 		 function createTrTag() {
 			var tr = document.createElement("tr");
@@ -622,24 +597,6 @@
 			return tr;
 		 }
 		 
-		 var dbclicks = ["enableSelectForCapitolo(this, 'myid-capitolo', 90, 'myvalue');",
-		 "enableTextInputElement(this, 'myid-fattura', 100, 'Es. 1/PA', 'Numero della fattura', this.innerHTML);",
-		 "enableDateInputElement(this, 'myid-dataDataSdi', 160, 'Data SDI', 'myvalue');",
-		 "enableNumberInputElement(this, 'myid-importo', 100, 'Es. 50', 'Importo fattura', this.innerHTML);",
-		 "enableTextInputElement(this, 'myid-oggetto', 100, 'Es. Servizio di sorveglianza', 'Oggetto della fattura', this.innerHTML);",
-		 "enableTextInputElement(this, 'myid-mese', 100, 'Es. gen-22', 'Mese di competenza', this.innerHTML);",
-		 "enableTextInputElement(this, 'myid-prestazione', 100, 'Es. Pulizia locali', 'Prestazione della fattura', this.innerHTML);",
-		 "enableDateInputElement(this, 'myid-scadenza', 160, 'Scadenza', 'myvalue');",
-		 "enableNumberInputElement(this, 'myid-eserciziospesa', 100, 'Es. 2022', 'Esercizio di spesa', this.innerHTML);",
-		 "enableSelectForVoceSpesa(this, 'myid-vocespesa', 250, 'myvalue');",
-		 "enableSelectForFornitore(this, 'myid-fornitore', 250, 'myvalue');",
-		 "enableSelectForContratto(this, 'myid-contratto', 150, 'myvalue');",
-		 "enableTextInputElement(this, 'myid-decretosg', 100, 'Es. 50', 'Decreto SG', this.innerHTML);",
-		 "enableDateInputElement(this, 'myid-datadecreto', 160, 'Data Decreto SG', '22/03/2022');"
-		 ]
-		 
-     	 var rows;
-		 
 		 function clearTableBody() {
 			document.getElementById("table-body").innerHTML="";
 		 }
@@ -649,6 +606,7 @@
 		 }
 		 
 		 function doDrawTableBody() {
+			 loadOptionValues();
 			 getFatture();
 		 }
 		 

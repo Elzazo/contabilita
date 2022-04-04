@@ -36,8 +36,10 @@ public class ReadFattureFromDB implements ReadFattureInterface {
 					Jsonable j = res.get(i);
 					sb.append(j.toJson());
 					sb.append(",");
+					sb.append(System.lineSeparator());
 				}
 				sb.append(res.get(res.size()-1).toJson());
+				sb.append(System.lineSeparator());
 				sb.append("\t]");
 				sb.append(System.lineSeparator());
 				sb.append("}");

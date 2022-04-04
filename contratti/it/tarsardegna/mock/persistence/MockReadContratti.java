@@ -25,9 +25,12 @@ public class MockReadContratti implements ReadFattureInterface{
 		sb.append(": [");
 		sb.append(System.lineSeparator());
 		final int elements = Math.abs(new Random().nextInt(1000));
-		for (int i=0; i< elements; i++){
-			sb.append(MockFatturaFactory.getRandomFattura().toJson(i + 1!= elements));
+		for (int i=0; i< elements - 1; i++){
+			sb.append(MockFatturaFactory.getRandomFattura().toJson(2));
+			sb.append(",");
+			sb.append(System.lineSeparator());
 		}
+		sb.append(MockFatturaFactory.getRandomFattura().toJson(2));
 		sb.append("\t]");
 		sb.append(System.lineSeparator());
 		sb.append("}");

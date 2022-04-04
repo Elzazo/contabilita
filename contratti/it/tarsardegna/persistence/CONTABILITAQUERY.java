@@ -20,7 +20,7 @@ public enum CONTABILITAQUERY implements PersistenceQuery{
 			+ "FROM fattura f, fornitore forn, decreto d, capitolo cap, contratto contr, vocespesa vs "
 			+ "WHERE forn.id = f.fornitoreid AND f.decretoid = d.id AND cap.id = f.capitoloid "
 			+ "AND contr.id = f.contrattoId AND vs.id = f.vocespesaid;", new FatturaMapper());
-
+	
 	private String query;
 	private QueryMapper mapper;
 

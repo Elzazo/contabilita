@@ -15,7 +15,8 @@ import java.util.Locale;
 public class StringUtils {
 
 	private static SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-	private static NumberFormat df = NumberFormat.getNumberInstance(new Locale("it", "IT"));
+	private static NumberFormat df = NumberFormat.getNumberInstance(new Locale(
+			"it", "IT"));
 	static {
 		df.setMinimumFractionDigits(2);
 		df.setMaximumFractionDigits(2);
@@ -37,9 +38,10 @@ public class StringUtils {
 		if (value instanceof Integer) {
 			return jsonifyPropertyName(value.toString());
 		}
-		
+
 		if (value instanceof Float) {
-			return jsonifyPropertyValue(df.format(value)); // raw numbers not allowed
+			return jsonifyPropertyValue(df.format(value)); // raw numbers not
+															// allowed
 		}
 
 		if (value instanceof Date) {
@@ -59,6 +61,14 @@ public class StringUtils {
 			sb.append(",");
 		}
 		sb.append(System.lineSeparator());
+	}
+
+	public static String getTabs(int tabs) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < tabs; i++) {
+			sb.append("\t");
+		}
+		return sb.toString();
 	}
 
 }

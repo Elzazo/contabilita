@@ -68,6 +68,7 @@ public class DB {
 	public static List<Jsonable> doQuery(Schema schema, PersistenceQuery query) {
 		List<Jsonable> result = new ArrayList<>();
 		if (schema != null && query != null) {
+			initDB();
 			Connection c = connections.get(schema);
 			if (c != null) {
 				try {
