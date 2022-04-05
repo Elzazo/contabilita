@@ -22,6 +22,7 @@ public class FatturaMapper implements QueryMapper{
 		try {
 			while(rs.next()){
 				Fattura f = new Fattura();
+				f.setKey(rs.getInt("id"));
 				f.setCapitolo(rs.getInt("capitolo"));
 				f.setNumeroFattura(rs.getString("numero"));
 				f.setImporto(rs.getFloat("importo"));

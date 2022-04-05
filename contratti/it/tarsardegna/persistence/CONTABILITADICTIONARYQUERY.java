@@ -6,6 +6,7 @@ package it.tarsardegna.persistence;
 import java.util.HashMap;
 
 import it.tarsardegna.persistence.mapper.DictionaryMapper;
+import it.tarsardegna.persistence.mapper.DictionaryWithParentMapper;
 import it.tarsardegna.persistence.mapper.QueryMapper;
 
 /**
@@ -19,7 +20,7 @@ public enum CONTABILITADICTIONARYQUERY implements PersistenceQuery {
 	CAPITOLO("SELECT id, denominazione FROM "+Dictionary.CAPITOLO.getDictionaryName()+ " ORDER BY denominazione"),
 	CONTRATTO("SELECT id, denominazione FROM "+Dictionary.CONTRATTO.getDictionaryName()+ " ORDER BY denominazione"),
 	FORNITORE("SELECT id, denominazione FROM "+Dictionary.FORNITORE.getDictionaryName()+ " ORDER BY denominazione"),
-	VOCESPESA("SELECT id, denominazione FROM "+Dictionary.VOCESPESA.getDictionaryName()+ " ORDER BY denominazione"),
+	VOCESPESA("SELECT id, capitoloid as parentid, denominazione FROM "+Dictionary.VOCESPESA.getDictionaryName()+ " ORDER BY denominazione"),
 	;
 	
 	private static HashMap<String, CONTABILITADICTIONARYQUERY> _map = new  HashMap<>();
@@ -44,7 +45,7 @@ public enum CONTABILITADICTIONARYQUERY implements PersistenceQuery {
 
 	@Override
 	public QueryMapper getMapper() {
-		return new DictionaryMapper();
+		return VOCESPESA.equals(this) ? new DictionaryWithParentMapper(): new DictionaryMapper();
 	}
 
 	public static PersistenceQuery getQueryByDictionaryName(String parameter) {

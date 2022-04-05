@@ -10,24 +10,17 @@ import it.tarsardegna.util.StringUtils;
  * @author elzaz
  *
  */
-public class Dictionary implements Jsonable{
+public class Dictionary extends IntKey implements Jsonable{
 	
-	private int id;
 	private String denominazione;
 	
-	public Dictionary(){}
+	public Dictionary(){
+		super(-1);
+	}
 
 	public Dictionary(int id, String denominazione){
-		this.id = id;
+		super(id);
 		this.denominazione = denominazione;
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
 	}
 
 	public String getDenominazione() {
@@ -50,7 +43,7 @@ public class Dictionary implements Jsonable{
 		sb.append("{");
 		sb.append(System.lineSeparator());
 		sb.append(tab); sb.append("\t");
-		StringUtils.addPropertyAndValueToStringBuilder("id", id, sb, true);
+		StringUtils.addPropertyAndValueToStringBuilder("id", getKey(), sb, true);
 		sb.append(tab); sb.append("\t");
 		StringUtils.addPropertyAndValueToStringBuilder("denominazione", denominazione, sb, false);
 		sb.append(tab); sb.append("}");

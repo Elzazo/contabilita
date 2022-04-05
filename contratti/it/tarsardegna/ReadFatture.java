@@ -39,7 +39,7 @@ public class ReadFatture extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		ReadFattureInterface readFatture = ReadFattureFactory.getInterface();
 		String res = readFatture.getFatture();
-		System.out.println(res);
+		//System.out.println(res);
 		response.getWriter().println(res);
 		response.getWriter().flush();
 	}

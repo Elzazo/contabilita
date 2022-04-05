@@ -5,7 +5,7 @@ import it.tarsardegna.util.StringUtils;
 
 import java.util.Date;
 
-public class Fattura implements Jsonable{
+public class Fattura extends IntKey implements Jsonable{
 
 	private int capitolo;
 	private String numeroFattura;
@@ -23,11 +23,13 @@ public class Fattura implements Jsonable{
 	private Date dataDecreto;
 
 	public Fattura() {
+		super(-1);
 	}
 
-	public Fattura(int capitolo, String numeroFattura,
+	public Fattura(int key, int capitolo, String numeroFattura,
 			float importo, String fornitore, String contrattoDiscrezionale,
 			String numeroDecreto, Date dataDecreto) {
+		super(key);
 		this.capitolo = capitolo;
 		this.numeroFattura = numeroFattura;
 		this.importo = importo;
@@ -154,13 +156,15 @@ public class Fattura implements Jsonable{
 		StringBuilder sb = new StringBuilder();
 		sb.append("\t\t{");
 		sb.append(System.lineSeparator());
-		
+		sb.append("\t\t\t");
+		StringUtils.addPropertyAndValueToStringBuilder(
+				FatturaPropertyNames.ID.toString(), getKey(), sb, true);
 		sb.append("\t\t\t");
 		StringUtils.addPropertyAndValueToStringBuilder(
 				FatturaPropertyNames.CAPITOLO.toString(), capitolo, sb, true);
 		sb.append("\t\t\t");
 		StringUtils.addPropertyAndValueToStringBuilder(
-				FatturaPropertyNames.FATTURA.toString(), numeroFattura, sb,
+				FatturaPropertyNames.NUMERO.toString(), numeroFattura, sb,
 				true);
 		
 		sb.append("\t\t\t");

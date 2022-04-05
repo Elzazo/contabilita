@@ -1,4 +1,29 @@
-         //---------------------------------------------------- AJAX CALLS START --------------------------------------------------------
+// -----------------------CONSTANTS DEFINITION START----------------------------------------------- 
+		 const CAPITOLO="capitolo";
+		 const FATTURA = "numero";
+		 const IMPORTO = "importo";
+		 const OGGETTO = "oggetto";
+		 const MESE = "mese";
+		 const PRESTAZIONE = "prestazione";
+		 const DATASDI = "datasdi";
+		 const SCADENZA = "scadenza";
+		 const ESERCIZIOSPESA = "eserciziospesa";
+		 const VOCESPESA = "vocespesa";
+		 const FORNITORE = "fornitore";
+		 const CONTRATTO = "contratto";
+		 const DECRETOSG = "decretosg";
+		 const DATADECRETO = "datadecreto";
+		 
+         var idList=[CAPITOLO, FATTURA, DATASDI, IMPORTO, OGGETTO, MESE, PRESTAZIONE, 
+                     SCADENZA, ESERCIZIOSPESA,  VOCESPESA, FORNITORE, CONTRATTO, DECRETOSG, DATADECRETO];
+                  
+// -----------------------CONSTANTS DEFINITION END-----------------------------------------------         
+
+
+
+
+
+//---------------------------------------------------- AJAX CALLS START --------------------------------------------------------
 
 
          function ajaxDeleteRow(id, name){
@@ -28,18 +53,36 @@
          
          function saveField(fieldName, fieldValue, td, originalValue, tdOnDbClick){
          var arg = {};
-         arg.fieldName = fieldName;
-         arg.fieldValue = fieldValue;
-         $.post( '../postUpdateField.html', arg , function(){
+         var dbFieldName = fieldName;
+         var displayName = fieldName;
+         if (fieldName.endsWith('-option')){
+        	 dbFieldName = fieldName.replace('-option', 'id');
+        	 displayName = fieldName.replace('-option', '');
+         }         
+         arg[dbFieldName]= fieldValue;
+         var tid = td.getAttribute("id");
+         var idValue = tid.substring(0, tid.indexOf("-"));
+         arg["id"] = idValue;
+         console.log("Will try to update fatture with {"+dbFieldName+": "+fieldValue+", id:"+idValue+"}");
+         $.post( '../UpdateFatture', arg , function(){
            													// nothing to do,
 															// will check the
 															// results
-           												}).done(function() {
-           														alert('Campo '+fieldName+' aggiornato correttamente.');
-         									restoreInnerHtml(td, fieldValue, tdOnDbClick);
-           														}
+           												}).done(function(data) {
+           													    console.log('UpdateFattureResult: ['+data+']');
+           													    if ("OK" == data){
+           													    	//alert('Campo '+fieldName+' aggiornato correttamente.');
+           													    	restoreInnerHtml(td, fieldValue, tdOnDbClick);
+           													    	//TODO: fix numeric fields (importo)
+           													    	td.parentElement.setAttribute(fieldName, fieldValue);
+           														}else {
+           															alert('Errore durante l\'aggiornamento del campo '+displayName+ ' con il valore '+fieldValue);
+           		         											restoreInnerHtml(td, originalValue, tdOnDbClick);
+           		           										}
+           														
+           													}
            													   ).fail(function() {
-           																alert('Errore durante l\'aggiornamento del campo '+fieldName+ ' con il valore '+fieldValue);
+           																alert('Errore durante l\'aggiornamento del campo '+displayName+ ' con il valore '+fieldValue);
          											restoreInnerHtml(td, originalValue, tdOnDbClick);
            																}
            													          );
@@ -83,16 +126,18 @@
 		 
 		 
 		 var dictionaryUrl='../ReadDictionary?dictionary=';
-		 var capitolo, fornitore, contratto;
+		 var capitolo, fornitore, contratto, vocespesa;
 		 
 		 function loadOptionValues() {
 			 doGetDictionary(CAPITOLO);
 			 doGetDictionary(CONTRATTO);
 			 doGetDictionary(FORNITORE);
+			 doGetDictionary(VOCESPESA);
 		 }
 		 
 		 
 		 function doGetDictionary(dictionary){
+			 console.log('Retrieving dictionary for '+dictionary);
 			 $.get( dictionaryUrl + dictionary, {}, function(data) { 
 					var oResult = $.parseJSON(data);
 					var storeResult = oResult["result"];
@@ -105,6 +150,9 @@
 					}else if(FORNITORE == dictionary){
 						console.log('Dictionary fornitore loaded successfully.');
 						fornitore = storeResult;
+					}else if(VOCESPESA == dictionary){
+						console.log('Dictionary vocespesa loaded successfully.');
+						vocespesa = storeResult;
 					}
 				}, 
 			 	"text");
@@ -137,20 +185,20 @@
          
 		//---------------------------------------------------- DOM MANIPULATION CALLS START --------------------------------------------------------
 		 
-		 var dbclicks = ["enableSelectForCapitolo(this, 'myid-capitolo', 90, 'myvalue');",
-		        		 "enableTextInputElement(this, 'myid-fattura', 100, 'Es. 1/PA', 'Numero della fattura', this.innerHTML);",
-		        		 "enableDateInputElement(this, 'myid-dataDataSdi', 160, 'Data SDI', 'myvalue');",
-		        		 "enableNumberInputElement(this, 'myid-importo', 100, 'Es. 50', 'Importo fattura', this.innerHTML);",
-		        		 "enableTextInputElement(this, 'myid-oggetto', 100, 'Es. Servizio di sorveglianza', 'Oggetto della fattura', this.innerHTML);",
-		        		 "enableTextInputElement(this, 'myid-mese', 100, 'Es. gen-22', 'Mese di competenza', this.innerHTML);",
-		        		 "enableTextInputElement(this, 'myid-prestazione', 100, 'Es. Pulizia locali', 'Prestazione della fattura', this.innerHTML);",
-		        		 "enableDateInputElement(this, 'myid-scadenza', 160, 'Scadenza', 'myvalue');",
-		        		 "enableNumberInputElement(this, 'myid-eserciziospesa', 100, 'Es. 2022', 'Esercizio di spesa', this.innerHTML);",
-		        		 "enableSelectForVoceSpesa(this, 'myid-vocespesa', 250, 'myvalue');",
-		        		 "enableSelectForFornitore(this, 'myid-fornitore', 250, 'myvalue');",
-		        		 "enableSelectForContratto(this, 'myid-contratto', 150, 'myvalue');",
-		        		 "enableTextInputElement(this, 'myid-decretosg', 100, 'Es. 50', 'Decreto SG', this.innerHTML);",
-		        		 "enableDateInputElement(this, 'myid-datadecreto', 160, 'Data Decreto SG', '22/03/2022');"
+		 var dbclicks = ["enableSelectForCapitolo(this, 'myid-"+CAPITOLO+"', 90, 'myvalue');",
+		        		 "enableTextInputElement(this, 'myid-"+FATTURA+"', 100, 'Es. 1/PA', 'Numero della fattura', this.innerHTML);",
+		        		 "enableDateInputElement(this, 'myid-"+DATASDI+"', 160, 'Data SDI', 'myvalue');",
+		        		 "enableNumberInputElement(this, 'myid-"+IMPORTO+"', 100, 'Es. 50', 'Importo fattura', this.innerHTML);",
+		        		 "enableTextInputElement(this, 'myid-"+OGGETTO+"', 100, 'Es. Servizio di sorveglianza', 'Oggetto della fattura', this.innerHTML);",
+		        		 "enableTextInputElement(this, 'myid-"+MESE+"', 100, 'Es. gen-22', 'Mese di competenza', this.innerHTML);",
+		        		 "enableTextInputElement(this, 'myid-"+PRESTAZIONE+"', 100, 'Es. Pulizia locali', 'Prestazione della fattura', this.innerHTML);",
+		        		 "enableDateInputElement(this, 'myid-"+SCADENZA+"', 160, 'Scadenza', 'myvalue');",
+		        		 "enableNumberInputElement(this, 'myid-"+ESERCIZIOSPESA+"', 100, 'Es. 2022', 'Esercizio di spesa', this.innerHTML);",
+		        		 "enableSelectForVoceSpesa(this, 'myid-"+VOCESPESA+"', 250, 'myvalue');",
+		        		 "enableSelectForFornitore(this, 'myid-"+FORNITORE+"', 250, 'myvalue');",
+		        		 "enableSelectForContratto(this, 'myid-"+CONTRATTO+"', 150, 'myvalue');",
+		        		 "enableTextInputElement(this, 'myid-"+DECRETOSG+"', 100, 'Es. 50', 'Decreto SG', this.innerHTML);",
+		        		 "enableDateInputElement(this, 'myid-"+DATADECRETO+"', 160, 'Data Decreto SG', '22/03/2022');"
 		        		 ]
 		 
          function restoreInnerHtml(td, innerHTML, tdOnDbClick){
@@ -189,7 +237,8 @@
 			// della fattura" aria-describedby="basic-addon2" value="1/PA">
          	
          	var ie = createInputElementTag();
-         	ie.setAttribute("id", id.replace("td", ""));
+         	var ieId = id.replace("td", "");
+         	ie.setAttribute("id", ieId);
          	// ie.setAttribute("style", "width:"+pixelWidth+"px");
          	ie.setAttribute("style", "width: 100%");
          	ie.setAttribute("type", "text");
@@ -207,7 +256,10 @@
          	ie.addEventListener("keyup", function(event) {
          									if(event.keyCode === 27){
          									   // Esc key was pressed
-         									   restoreInnerHtml(td, value, tdOnDbClick);
+         									   var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
+         									   var elementOriginalValue = td.parentElement.getAttribute(elementName);
+         									   console.log("Will restore original value of "+elementName+ " with "+ elementOriginalValue); 
+         									   restoreInnerHtml(td, elementOriginalValue, tdOnDbClick);
          									   return;
          								   }
          								   
@@ -227,8 +279,12 @@
          }
          
          function enableNumberInputElement(td, id, pixelWidth, placeholder,ariaLabel, value){
-        	 var inputElement = enableTextInputElement(td, id, pixelWidth, placeholder,ariaLabel, value);
+        	 var myvalue = value;
+        	 myvalue = myvalue.replace('.', '');
+        	 myvalue = myvalue.replace(',', '.');
+        	 var inputElement = enableTextInputElement(td, id, pixelWidth, placeholder,ariaLabel, myvalue);
         	 inputElement.setAttribute("type", "number");
+        	 inputElement.setAttribute("step", ".01");
          }
          
          function enableSelectForContratto(td, id, pixelWidth, value) {
@@ -240,7 +296,8 @@
          	var ie = createSelectTag();
          	// ie.setAttribute("style", "width:"+pixelWidth+"px");
          	ie.setAttribute("style", "width: 100%");
-         	ie.setAttribute("id", id.replace("td", ""));
+         	var ieId = id.replace("td", "");
+         	ie.setAttribute("id", ieId);
          	ie.setAttribute("class", "form-select");
          	ie.setAttribute("title", "Cambia valore per salvare i dati, Esc per annullare");
          
@@ -270,8 +327,11 @@
          	ie.addEventListener("keyup", function(event) {
          									if(event.keyCode === 27){
          									   // Esc key was pressed
-         									   restoreInnerHtml(td, value, tdOnDbClick);
-         									   return;
+         									   var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
+          									   var elementOriginalValue = td.parentElement.getAttribute(elementName);
+          									   console.log("Will restore original value of "+elementName+ " with "+ elementOriginalValue); 
+          									   restoreInnerHtml(td, elementOriginalValue, tdOnDbClick);
+          									   return;
          								   }
          								});
          	td.appendChild(ie);
@@ -279,15 +339,66 @@
          }
          
          
+         function enableSelectForVoceSpesa(td, id, pixelWidth, value) {
+          	
+          	var ie = createSelectTag();
+          	// ie.setAttribute("style", "width:"+pixelWidth+"px");
+          	ie.setAttribute("style", "width: 100%");
+          	var ieId = id.replace("td", "");
+         	ie.setAttribute("id", ieId);
+          	ie.setAttribute("class", "form-select");
+          	ie.setAttribute("title", "Cambia valore per salvare i dati");
+          
+          	var parentid = td.parentElement.getAttribute(CAPITOLO);
+          	
+          	// removing the double click from tunneling
+          	var tdOnDbClick = td.getAttribute("ondblclick");
+          	td.removeAttribute("ondblclick");
+          	td.innerHTML = "";
+          	
+          	for (var i = 0; i < vocespesa.length; i++) {
+          		  var currentparentid = vocespesa[i]["parentid"];
+          		  if (currentparentid != parentid){
+          			  continue;
+          		  }
+          		  var cap = createOptionTag();
+          		  var den = vocespesa[i]["denominazione"];
+ 				  if (value == den){
+ 					  cap.selected="selected";
+          		  }
+          		  cap.innerHTML=den;
+          		  cap.setAttribute("myid", vocespesa[i]["id"]);
+          		  ie.appendChild(cap);
+          	}
+          	
+          	td.appendChild(ie);
+          	ie.focus();
+          	ie.addEventListener("change", function() {
+          									   var fieldName = id.substring(id.indexOf("-")+1);
+          									   // TODO: add change to voce
+ 												// spesa
+          									   saveField(fieldName, ie.value, td, value, tdOnDbClick);	
+          								  });
+          	ie.addEventListener("keyup", function(event) {
+          									if(event.keyCode === 27){
+          									   var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
+          									   var elementOriginalValue = td.parentElement.getAttribute(elementName);
+          									   console.log("Will restore original value of "+elementName+ " with "+ elementOriginalValue); 
+          									   restoreInnerHtml(td, elementOriginalValue, tdOnDbClick);
+          									   return;
+          								   }
+          								});
+          }
+         
          function enableSelectForCapitolo(td, id, pixelWidth, value) {
          	
          	var ie = createSelectTag();
          	// ie.setAttribute("style", "width:"+pixelWidth+"px");
          	ie.setAttribute("style", "width: 100%");
-         	ie.setAttribute("id", id.replace("td", ""));
+         	var ieId = id.replace("td", "");
+         	ie.setAttribute("id", ieId);
          	ie.setAttribute("class", "form-select");
          	ie.setAttribute("title", "Cambia valore per salvare i dati");
-         
          	
          	// removing the double click from tunneling
          	var tdOnDbClick = td.getAttribute("ondblclick");
@@ -310,27 +421,29 @@
          	ie.addEventListener("change", function() {
          									   var fieldName = id.substring(id.indexOf("-")+1);
          									   // TODO: add change to voce
+         									   // TODO: check where the selected value is
 												// spesa
-         									   saveField(fieldName, ie.value, td, value, tdOnDbClick);	
+         									   saveField(fieldName+'-option', ie.getAttribute("myid"), td, value, tdOnDbClick);	
          								  });
          	ie.addEventListener("keyup", function(event) {
          									if(event.keyCode === 27){
          									   // Esc key was pressed
-         									   restoreInnerHtml(td, value, tdOnDbClick);
-         									   return;
+         									   var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
+          									   var elementOriginalValue = td.parentElement.getAttribute(elementName);
+          									   console.log("Will restore original value of "+elementName+ " with "+ elementOriginalValue); 
+          									   restoreInnerHtml(td, elementOriginalValue, tdOnDbClick);
+          									   return;
          								   }
          								});
          }
          
          function enableSelectForFornitore(td, id, pixelWidth, value) {
-         	/*
-			 * <select style="width:90px" id="2-fornitore" class="form-select">
-			 * <option selected>Enel S.P.A.</option> </select>
-			 */
+         	
          	var ie = createSelectTag();
          	// ie.setAttribute("style", "width:"+pixelWidth+"px");
          	ie.setAttribute("style", "width: 100%");
-         	ie.setAttribute("id", id);
+         	var ieId = id.replace("td", "");
+         	ie.setAttribute("id", ieId);
          	ie.setAttribute("class", "form-select");
          	ie.setAttribute("title", "Cambia valore per salvare i dati");
          
@@ -362,21 +475,19 @@
          	ie.addEventListener("keyup", function(event) {
          									if(event.keyCode === 27){
          									   // Esc key was pressed
-         									   restoreInnerHtml(td, value, tdOnDbClick);
-         									   return;
+         									   var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
+          									   var elementOriginalValue = td.parentElement.getAttribute(elementName);
+          									   console.log("Will restore original value of "+elementName+ " with "+ elementOriginalValue); 
+          									   restoreInnerHtml(td, elementOriginalValue, tdOnDbClick);
+          									   return;
          								   }
          								});
          }
          
-         
-         
          function enableDateInputElement(td, id, pixelWidth, ariaLabel, value){
-         	// <input id="2-data-fattura" style="width:175px"
-			// id="2-data-decreto" type="date" class="form-control
-			// it-date-datepicker" aria-label="Data Fattura"
-			// aria-describedby="basic-addon2" value="2022-03-22" >
          	var ie = createInputElementTag();
-         	ie.setAttribute("id", id.replace("td", ""));
+         	var ieId = id.replace("td", "");
+         	ie.setAttribute("id", ieId);
          	// ie.setAttribute("style", "width:"+pixelWidth+"px");
          	ie.setAttribute("style", "width: 100%");
          	ie.setAttribute("type", "date");
@@ -397,8 +508,11 @@
          	ie.addEventListener("keyup", function(event) {
          									if(event.keyCode === 27){
          									   // Esc key was pressed
-         									   restoreInnerHtml(td, value, tdOnDbClick);
-         									   return;
+         									   var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
+           									   var elementOriginalValue = td.parentElement.getAttribute(elementName);
+           									   console.log("Will restore original value of "+elementName+ " with "+ elementOriginalValue); 
+           									   restoreInnerHtml(td, elementOriginalValue, tdOnDbClick);
+           									   return;
          								   }
          								   
          								   if (event.keyCode === 13) {
@@ -422,132 +536,7 @@
          					
          }
         
-       //---------------------------------------------------- DOM MANIPULATION CALLS START --------------------------------------------------------
-         
-         // -----------------------CONSTANTS DEFINITION START-----------------------------------------------		 
-		 // definition of voci spesa
-		 
-		 let vocispesadef = [
-			["2286","1","Materiale informatico di facile consumo"],
-			["2287","2","Spese per Covid_19 (dispensatori liquido, liquido igienizzante, mascherine di protezione, guanti monouso, ecc.)"],
-			["2287","3","Carta"],
-			["2287","4","Cancelleria, stampati speciali (compreso minute spese funzionamento biblioteca)"],
-			["2287","5","Rilegatura bollettini, sentenze e pubblicazioni in genere"],
-			["2287","6","Minute spese (piccoli accessori per auto, timbri, numeratori automatici, ecc)"],
-			["2287","7","Materiale igienico e sanitario"],
-			["2287","8","Manutenzione ordinaria attrezzature ed apparecchiature non informatiche (fotocopiatrici, fax, calcolatrici, ecc.)"],
-			["2287","9","Noleggio macchine d'ufficio non informatiche (fotocopiatrici, videoproiettori, fax ecc.)"],
-			["2287","10","Manutenzione ordinaria mobili, arredi e accessori"],
-			["2287","11","Spese per servizio di reception"],
-			["2287","12","Spese per servizio di vigilanza"],
-			["2288","13","Canone e consumi per acqua"],
-			["2288","14","Canone e consumi per energia elettrica"],
-			["2288","15","Canone e consumi per riscaldamento"],
-			["2288","16","Canone e consumi per condizionamento"],
-			["2288","17","Canone e consumi per gas"],
-			["2288","18","Canone e consumi telefonici"],
-			["2288","19","Canone noleggio centralino telefonico"],
-			["2291","20","Manutenzione ordinaria immobili"],
-			["2291","21","Manutenzione straordinaria immobili"],
-			["2291","22","Manutenzione ordinaria ascensori ed elevatori"],
-			["2291","23","Manutenzione ordinaria impianti di condizionamento"],
-			["2291","24","Manutenzione ordinaria impianto riscaldamento"],
-			["2291","25","Manutenzione ordinaria centralini ed impianti telefonici"],
-			["2291","26","Manutenzione ordinaria impianto elettrico"],
-			["2291","27","Manutenzione ordinaria rete LAN"],
-			["2291","28","Manutenzione ordinaria impianto idrico"],
-			["2291","29","Manutenzione ordinaria impianto antincendio"],
-			["2291","30","Manutenzione ordinaria aree esterne"],
-			["2291","31","Manutenzione ordinaria altri impianti (specificare nella colonna delle osservazioni  quali altri impianti)  Impianto apriporta elettrico con lettori di tessere di prossimit…"],
-			["2291","32","Manutenzione straordinaria impianti"],
-			["2291","33","Spese per misure di sicurezza e vigilanza"],
-			["2291","34","Spese per Covid_19 (Pulizia impianti condizionamento/riscaldamento)"],
-			["2292","35","Noleggio"],
-			["2292","36","Ccar sharing"],
-			["2292","37","Convenzione taxi"],
-			["2292","38","Spese per Covid_19 (sanificazione automezzi)"],
-			["2293","39","Corrispondenza affrancata"],
-			["2293","40","Cartoline postali"],
-			["2293","41","Pick up"],
-			["2293","42","Home box"],
-			["2293","43","Corriere espresso"],
-			["2294","44","Spese per l'inaugurazione dell'anno giudiziario"],
-			["2296","45","Fitto locali sede"],
-			["2296","46","Oneri accessori sede"],
-			["2296","47","Fitto locali archivi esterni"],
-			["2296","48","Oneri accessori archivi"],
-			["2297","49","Spese per gli onorari degli avvocati che hanno esercitato il patrocinio con oneri a carico dello Stato"],
-			["2297","50","Spese per notificazioni e comunicazioni"],
-			["2298","51","Spese per contratto Responsabile del Servizio di Prevenzione e Protezione (RSPP)"],
-			["2298","52","Spese per contratto Medico Competente (MC)"],
-			["2298","53","Spese per visite del medico competente"],
-			["2298","54","Spese per corsi di formazione in materia di sicurezza"],
-			["2298","55","Spese per Covid_19 (redazione DUVRI, corsi formazione, ecc )"],
-			["2301","56","Spese di trasporto mobili, macchine, impianti fascicoli ed altro materiale d'ufficio."],
-			["2302","57","Spese per la pulizia dei locali"],
-			["2302","58","Spese per Covid_19 (interventi di sanificazione, pulizie straordinarie)"],
-			["2302","59","Spese per lo smaltimento dei rifiuti speciali (toner ecc.)"],
-			["2303","60","Tassa smaltimento rifiuti solidi urbani"],
-			["2303","61","Tributi vari"],
-			["2304","62","Spese per l'affidamento esterno della gestione dell'archivio di deposito"],
-			["5250","63","Mobili, scaffalature, arredi"],
-			["5251","64","Libri"],
-			["5252","65","Attrezzature ed apparecchiature non informatiche (fotocopiatrici, fax, calcolatrici, videoproiettori ecc.)"],
-			["5252","66","Spese per misure di sicurezza e vigilanza"],
-			["5253","67","SPESE PER RISTRUTTURAZIONE E MANUTENZIONE STRAORDINARIA DEGLI EDIFICI DEMANIALI"],
-			["2287","68","Altro"],
-			["2288","69","Altro"],
-			["2291","70","Altro"],
-			["2292","71","Altro"],
-			["2293","72","Altro"],
-			["2296","73","Altro"],
-			["2298","74","Altro"],
-			["5250","75","Altro"],
-			["5252","76","Altro"]
-		];
-		 
-		 var vocispesa = new Map();
-		 
-		 for (var i = 0; i < vocispesadef.length; i++){
-			 var elem = vocispesadef[i];
-			 var mainMap;
-			 if (vocispesa.has(elem[0])){
-				 mainMap = vocispesa.get(elem[0]);
-			 }else {
-				 mainMap = new Map();
-				 vocispesa.set(elem[0], mainMap);
-			 }
-			 mainMap.set(elem[1], elem[2]);	
-		 }
-		 
-		 // for (const cap of vocispesa.keys()){
-		 // console.log("Values of "+cap);
-		 // var innerMap = vocispesa.get(cap);
-		 // for (const key of innerMap.keys()){
-		 // console.log("Key "+key+" is "+innerMap.get(key));
-		 // }
-		 // }
-		 
-		 const CAPITOLO="capitolo";
-		 const FATTURA = "fattura";
-		 const IMPORTO = "importo";
-		 const OGGETTO = "oggetto";
-		 const MESE = "mese";
-		 const PRESTAZIONE = "prestazione";
-		 const DATASDI = "datasdi";
-		 const SCADENZA = "scadenza";
-		 const ESERCIZIOSPESA = "eserciziospesa";
-		 const VOCESPESA = "vocespesa";
-		 const FORNITORE = "fornitore";
-		 const CONTRATTO = "contratto";
-		 const DECRETOSG = "decretosg";
-		 const DATADECRETO = "datadecreto";
-		 
-         var idList=[CAPITOLO, FATTURA, DATASDI, IMPORTO, OGGETTO, MESE, PRESTAZIONE, SCADENZA, ESERCIZIOSPESA,  VOCESPESA, FORNITORE, CONTRATTO, DECRETOSG, DATADECRETO];
-                  
-         // -----------------------CONSTANTS DEFINITION END-----------------------------------------------
-
-         
+       //---------------------------------------------------- DOM MANIPULATION CALLS START --------------------------------------------------------      
          
          // holds the current state of each edit entire row image
          var toggleEditMap = new Map();
@@ -660,11 +649,12 @@
 					tr.appendChild(td);
 				}
 				
+				console.log('Populating cells...');
 				for (var j = 0; j<idList.length; j++) {
 					var field = idList[j];
-					// alert(field);
 					var value = data[field];
-					// alert(value);
+					console.log("Adding attribute "+field+" with value "+value);
+					tr.setAttribute(field.toLowerCase(), ''+value);
 					var td = createTdTag();
 					td.setAttribute("id", id+"-"+field+"-td");
 					var doubleClick = dbclicks[j].replace("myid", id);
@@ -749,7 +739,7 @@
 		 }
 		 
 		 function isNumericField(fieldName) {
-			return IMPORTO == fieldName || MESE == fieldName || ESERCIZIOSPESA == fieldName;
+			return IMPORTO == fieldName || DECRETOSG == fieldName;
 		 }
 		 
 		 function getDateFromString(dateToParse) {
@@ -762,14 +752,16 @@
 		 }
 		 
 		 function sort(fieldName, asc) {
-			
+			console.log('Sorting '+fieldName+'...');
 			if (isTextField(fieldName)) {
+				console.log('Will sort '+fieldName+' like text');
 				rows.sort((a, b) => {
 				    var aa = a[fieldName], bb = b[fieldName];
 					return asc ? ('' + aa).localeCompare(bb) : ('' + bb).localeCompare(aa);
 				}
 				);
 			} else if (isDateField(fieldName)){
+				console.log('Will sort '+fieldName+' like date');
 				rows.sort((a, b) => {
 				    var aa = asc ? getDateFromString(a[fieldName]) : getDateFromString(b[fieldName]);
 					var bb = asc ? getDateFromString(b[fieldName]) : getDateFromString(a[fieldName]);
@@ -784,6 +776,7 @@
 				}
 				);
 			} else if (isNumericField(fieldName)) {
+				console.log('Will sort '+fieldName+' like number');
 				rows.sort((a, b) => {
 				    var aa = asc ? getFloatFromString(a[fieldName]) : getFloatFromString(b[fieldName]);
 					var bb = asc ? getFloatFromString(b[fieldName]) : getFloatFromString(a[fieldName]);

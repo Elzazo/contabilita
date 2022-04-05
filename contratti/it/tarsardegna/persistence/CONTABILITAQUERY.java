@@ -12,14 +12,16 @@ import it.tarsardegna.persistence.mapper.QueryMapper;
  */
 public enum CONTABILITAQUERY implements PersistenceQuery{
 
+	
 	MAIN_QUERY(
-			"SELECT cap.denominazione AS capitolo, f.numero, "
+			"SELECT f.id, cap.denominazione AS capitolo, f.numero, "
 			+ "f.importo, f.oggetto, f.mese, f.prestazione, f.datasdi AS datasdi, "
 			+ "f.scadenza, f.eserciziospesa, vs.denominazione as vocespesa, forn.denominazione AS fornitore,"
 			+ " contr.denominazione AS contratto, d.id AS numerodecreto ,d.datadecreto "
 			+ "FROM fattura f, fornitore forn, decreto d, capitolo cap, contratto contr, vocespesa vs "
 			+ "WHERE forn.id = f.fornitoreid AND f.decretoid = d.id AND cap.id = f.capitoloid "
-			+ "AND contr.id = f.contrattoId AND vs.id = f.vocespesaid;", new FatturaMapper());
+			+ "AND contr.id = f.contrattoId AND vs.id = f.vocespesaid;", new FatturaMapper()),
+	UPDATE_QUERY("UPDATE fattura SET "+DB.updatePattern+ " = ? WHERE id = ?", null);
 	
 	private String query;
 	private QueryMapper mapper;
