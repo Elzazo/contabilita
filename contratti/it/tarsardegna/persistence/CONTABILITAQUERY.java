@@ -21,7 +21,9 @@ public enum CONTABILITAQUERY implements PersistenceQuery{
 			+ "FROM fattura f, fornitore forn, decreto d, capitolo cap, contratto contr, vocespesa vs "
 			+ "WHERE forn.id = f.fornitoreid AND f.decretoid = d.id AND cap.id = f.capitoloid "
 			+ "AND contr.id = f.contrattoId AND vs.id = f.vocespesaid;", new FatturaMapper()),
-	UPDATE_QUERY("UPDATE fattura SET "+DB.updatePattern+ " = ? WHERE id = ?", null);
+	GENERAL_FATTURA_UPDATE_QUERY("UPDATE fattura SET "+DB.updatePattern+ " = ? WHERE id = ?", null),
+	FATTURA_CAPITOLO_UPDATE_QUERY("UPDATE fattura SET capitoloid = ?, vocespesaid=NULL WHERE id = ?", null),
+	FATTURA_NULL_VOCESPESA_UPDATE_QUERY("UPDATE fattura f SET f.vocespesaid = s.id FROM vocespesa s WHERE f.vocespesaid IS NULL AND f.capitoloid = s.capitoloid AND s.denominazione = 'Nessuna voce spesa'", null);
 	
 	private String query;
 	private QueryMapper mapper;

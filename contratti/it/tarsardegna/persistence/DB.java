@@ -106,19 +106,21 @@ public class DB {
 				Connection c = connections.get(schema);
 				for (Entry<String, String[]> es : map.entrySet()) {
 					FatturaPropertyNames pn = FatturaPropertyNames
-							.getFromDbType(es.getKey());
+							.getFromName(es.getKey());
 					if (pn == null) {
-						System.err
-								.println("cannot locate property name for "
-										+ es.getKey());
+						System.err.println("cannot locate property name for "
+								+ es.getKey());
 						return false;
 					}
-					String sql = CONTABILITAQUERY.UPDATE_QUERY.getQuery()
-							.replaceAll(DB.updatePattern, pn.getDbColumn());
+					String sql = FatturaPropertyNames.CAPITOLO.equals(pn) ? CONTABILITAQUERY.FATTURA_CAPITOLO_UPDATE_QUERY
+							.getQuery()
+							: CONTABILITAQUERY.GENERAL_FATTURA_UPDATE_QUERY
+									.getQuery().replaceAll(DB.updatePattern,
+											pn.getDbColumn());
 					PreparedStatement ps;
 					try {
 						ps = c.prepareStatement(sql);
-						
+
 						if (Types.VARCHAR == pn.getType()) {
 							ps.setString(1, es.getValue()[0]);
 						} else if (Types.INTEGER == pn.getType()) {
@@ -126,15 +128,18 @@ public class DB {
 						} else if (Types.FLOAT == pn.getType()) {
 							ps.setFloat(1, Float.parseFloat(es.getValue()[0]));
 						} else if (Types.DATE == pn.getType()) {
-							ps.setDate(
-									1,
-									new Date(new SimpleDateFormat(
-											"dd-MM-yyyy").parse(
-											es.getValue()[0]).getTime()));
+							ps.setDate(1, new Date(new SimpleDateFormat(
+									"dd-MM-yyyy").parse(es.getValue()[0])
+									.getTime()));
 						}
 
 						ps.setInt(2, id);
 						ps.execute();
+						
+						if (FatturaPropertyNames.CAPITOLO.equals(pn)){
+							ps = c.prepareStatement(CONTABILITAQUERY.FATTURA_NULL_VOCESPESA_UPDATE_QUERY.getQuery());
+							ps.execute();
+						}
 					} catch (SQLException e) {
 						e.printStackTrace();
 						return false;

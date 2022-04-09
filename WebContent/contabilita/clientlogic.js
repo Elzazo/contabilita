@@ -51,19 +51,15 @@
          }
            }
          
-         function saveField(fieldName, fieldValue, td, originalValue, tdOnDbClick){
+         function saveField(fieldName, fieldValue, td, tdValue, originalValue, tdOnDbClick){
          var arg = {};
          var dbFieldName = fieldName;
-         var displayName = fieldName;
-         if (fieldName.endsWith('-option')){
-        	 dbFieldName = fieldName.replace('-option', 'id');
-        	 displayName = fieldName.replace('-option', '');
-         }         
+         var displayName = fieldName;     
          arg[dbFieldName]= fieldValue;
          var tid = td.getAttribute("id");
          var idValue = tid.substring(0, tid.indexOf("-"));
          arg["id"] = idValue;
-         console.log("Will try to update fatture with {"+dbFieldName+": "+fieldValue+", id:"+idValue+"}");
+         console.log("Will try to update fatture with {"+dbFieldName+": "+fieldValue+", id:"+idValue+"}, eventually restoring value "+originalValue);
          $.post( '../UpdateFatture', arg , function(){
            													// nothing to do,
 															// will check the
@@ -72,7 +68,7 @@
            													    console.log('UpdateFattureResult: ['+data+']');
            													    if ("OK" == data){
            													    	//alert('Campo '+fieldName+' aggiornato correttamente.');
-           													    	restoreInnerHtml(td, fieldValue, tdOnDbClick);
+           													    	restoreInnerHtml(td, tdValue, tdOnDbClick);
            													    	//TODO: fix numeric fields (importo)
            													    	td.parentElement.setAttribute(fieldName, fieldValue);
            														}else {
@@ -185,20 +181,20 @@
          
 		//---------------------------------------------------- DOM MANIPULATION CALLS START --------------------------------------------------------
 		 
-		 var dbclicks = ["enableSelectForCapitolo(this, 'myid-"+CAPITOLO+"', 90, 'myvalue');",
-		        		 "enableTextInputElement(this, 'myid-"+FATTURA+"', 100, 'Es. 1/PA', 'Numero della fattura', this.innerHTML);",
+		 var dbclicks = ["enableSelectForCapitolo(this, 'myid-"+CAPITOLO+"', 90);",
+		        		 "enableTextInputElement(this, 'myid-"+FATTURA+"', 100, 'Es. 1/PA', 'Numero della fattura');",
 		        		 "enableDateInputElement(this, 'myid-"+DATASDI+"', 160, 'Data SDI', 'myvalue');",
 		        		 "enableNumberInputElement(this, 'myid-"+IMPORTO+"', 100, 'Es. 50', 'Importo fattura', this.innerHTML);",
-		        		 "enableTextInputElement(this, 'myid-"+OGGETTO+"', 100, 'Es. Servizio di sorveglianza', 'Oggetto della fattura', this.innerHTML);",
-		        		 "enableTextInputElement(this, 'myid-"+MESE+"', 100, 'Es. gen-22', 'Mese di competenza', this.innerHTML);",
-		        		 "enableTextInputElement(this, 'myid-"+PRESTAZIONE+"', 100, 'Es. Pulizia locali', 'Prestazione della fattura', this.innerHTML);",
+		        		 "enableTextInputElement(this, 'myid-"+OGGETTO+"', 100, 'Es. Servizio di sorveglianza', 'Oggetto della fattura');",
+		        		 "enableTextInputElement(this, 'myid-"+MESE+"', 100, 'Es. gen-22', 'Mese di competenza');",
+		        		 "enableTextInputElement(this, 'myid-"+PRESTAZIONE+"', 100, 'Es. Pulizia locali', 'Prestazione della fattura');",
 		        		 "enableDateInputElement(this, 'myid-"+SCADENZA+"', 160, 'Scadenza', 'myvalue');",
 		        		 "enableNumberInputElement(this, 'myid-"+ESERCIZIOSPESA+"', 100, 'Es. 2022', 'Esercizio di spesa', this.innerHTML);",
-		        		 "enableSelectForVoceSpesa(this, 'myid-"+VOCESPESA+"', 250, 'myvalue');",
-		        		 "enableSelectForFornitore(this, 'myid-"+FORNITORE+"', 250, 'myvalue');",
+		        		 "enableSelectForVoceSpesa(this, 'myid-"+VOCESPESA+"', 250);",
+		        		 "enableSelectForFornitore(this, 'myid-"+FORNITORE+"', 250);",
 		        		 "enableSelectForContratto(this, 'myid-"+CONTRATTO+"', 150, 'myvalue');",
-		        		 "enableTextInputElement(this, 'myid-"+DECRETOSG+"', 100, 'Es. 50', 'Decreto SG', this.innerHTML);",
-		        		 "enableDateInputElement(this, 'myid-"+DATADECRETO+"', 160, 'Data Decreto SG', '22/03/2022');"
+		        		 "enableTextInputElement(this, 'myid-"+DECRETOSG+"', 100, 'Es. 50', 'Decreto SG');",
+		        		 "enableDateInputElement(this, 'myid-"+DATADECRETO+"', 160, 'Data Decreto SG', 'myvalue');"
 		        		 ]
 		 
          function restoreInnerHtml(td, innerHTML, tdOnDbClick){
@@ -222,7 +218,9 @@
          }
          
          function createSelectTag() {
-             return document.createElement("select");
+             var sel =  document.createElement("select");
+             sel.setAttribute("size", 5);
+             return sel;
          }
          
          function createOptionTag() {
@@ -231,7 +229,7 @@
          
          
          
-         function enableTextInputElement(td, id, pixelWidth, placeholder,ariaLabel, value){
+         function enableTextInputElement(td, id, pixelWidth, placeholder,ariaLabel, numericValue){
          // e.g. <input id="2-fattura" style="width:100px" type="text"
 			// class="form-control" placeholder="Es. 1/PA" aria-label="Numero
 			// della fattura" aria-describedby="basic-addon2" value="1/PA">
@@ -247,10 +245,18 @@
          	ie.setAttribute("aria-label", ariaLabel);
          	ie.setAttribute("aria-describedby", "basic-addon2");
          	ie.setAttribute("title", "Premi Invio per salvare i dati, Esc per annullare");
-         	ie.setAttribute("value", value);
+         	var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
+         	var elementOriginalValue = td.parentElement.getAttribute(elementName);
+         	if (numericValue === undefined){
+         		ie.setAttribute("value", elementOriginalValue);
+         	}else {
+         		ie.setAttribute("value", numericValue);
+         	}
+			console.log("Original value of "+elementName+ " is "+ elementOriginalValue);
          	// removing the double click from tunneling
          	var tdOnDbClick = td.getAttribute("ondblclick");
          	td.removeAttribute("ondblclick");
+         	var originalInnerHTML = td.innerHTML;
          	// on Escape Key the field won't be updated and the value will be
 			// restored
          	ie.addEventListener("keyup", function(event) {
@@ -259,7 +265,7 @@
          									   var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
          									   var elementOriginalValue = td.parentElement.getAttribute(elementName);
          									   console.log("Will restore original value of "+elementName+ " with "+ elementOriginalValue); 
-         									   restoreInnerHtml(td, elementOriginalValue, tdOnDbClick);
+         									   restoreInnerHtml(td, originalInnerHTML, tdOnDbClick);
          									   return;
          								   }
          								   
@@ -268,7 +274,7 @@
 												// saving...
          										var fieldName = id.substring(id.indexOf("-")+1);
          										var fieldValue = ie.getAttribute("value");
-         										saveField(fieldName, ie.value, td, value, tdOnDbClick);
+         										saveField(fieldName, ie.value, td, elementOriginalValue, elementOriginalValue, tdOnDbClick);
          									}
          								});
          								
@@ -287,7 +293,7 @@
         	 inputElement.setAttribute("step", ".01");
          }
          
-         function enableSelectForContratto(td, id, pixelWidth, value) {
+         function enableSelectForContratto(td, id, pixelWidth) {
          	/*
 			 * <select style="width:115px" id="2-contratto"
 			 * class="form-control"> <option selected>Contratto</option>
@@ -305,32 +311,38 @@
          	// removing the double click from tunneling
          	var tdOnDbClick = td.getAttribute("ondblclick");
          	td.removeAttribute("ondblclick");
+         	var originalInnerHTML = td.innerHTML;
          	td.innerHTML = "";
          	
          	console.log('Contratto size:'+contratto.length);
-         	
+         	var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
+			var elementOriginalValue = td.parentElement.getAttribute(elementName);
+			  
          	for (var i = 0; i < contratto.length; i++){
          		var el = createOptionTag();
          		var label = contratto[i]["denominazione"];
          		console.log(label);
          		el.innerHTML=label;
-         		if (label == value){
+         		if (label == elementOriginalValue){
          			el.selected = "selected";
          		}
+         		el.setAttribute("value", contratto[i]["id"]);
          		ie.appendChild(el);
          	}
          	
          	ie.addEventListener("change", function() {
          									   var fieldName = id.substring(id.indexOf("-")+1);
-         									   saveField(fieldName, ie.value, td, value, tdOnDbClick);	
+         									   var optionText = ie.options[ie.selectedIndex].text;
+         									   saveField(fieldName, ie.value, td, optionText, elementOriginalValue, tdOnDbClick);
+         									   location.reload(); // restores combos
          								  });
          	ie.addEventListener("keyup", function(event) {
          									if(event.keyCode === 27){
          									   // Esc key was pressed
          									   var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
           									   var elementOriginalValue = td.parentElement.getAttribute(elementName);
-          									   console.log("Will restore original value of "+elementName+ " with "+ elementOriginalValue); 
-          									   restoreInnerHtml(td, elementOriginalValue, tdOnDbClick);
+          									   console.log("Will restore original value of "+elementName+ " with "+ originalInnerHTML); 
+          									   restoreInnerHtml(td, originalInnerHTML, tdOnDbClick);
           									   return;
          								   }
          								});
@@ -339,7 +351,7 @@
          }
          
          
-         function enableSelectForVoceSpesa(td, id, pixelWidth, value) {
+         function enableSelectForVoceSpesa(td, id, pixelWidth) {
           	
           	var ie = createSelectTag();
           	// ie.setAttribute("style", "width:"+pixelWidth+"px");
@@ -354,7 +366,12 @@
           	// removing the double click from tunneling
           	var tdOnDbClick = td.getAttribute("ondblclick");
           	td.removeAttribute("ondblclick");
+          	var originalInnerHTML = td.innerHTML;
           	td.innerHTML = "";
+          	
+          	var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
+			var elementOriginalValue = td.parentElement.getAttribute(elementName);
+			
           	
           	for (var i = 0; i < vocespesa.length; i++) {
           		  var currentparentid = vocespesa[i]["parentid"];
@@ -363,11 +380,11 @@
           		  }
           		  var cap = createOptionTag();
           		  var den = vocespesa[i]["denominazione"];
- 				  if (value == den){
+ 				  if (elementOriginalValue == den){
  					  cap.selected="selected";
           		  }
           		  cap.innerHTML=den;
-          		  cap.setAttribute("myid", vocespesa[i]["id"]);
+          		  cap.setAttribute("value", vocespesa[i]["id"]);
           		  ie.appendChild(cap);
           	}
           	
@@ -377,20 +394,19 @@
           									   var fieldName = id.substring(id.indexOf("-")+1);
           									   // TODO: add change to voce
  												// spesa
-          									   saveField(fieldName, ie.value, td, value, tdOnDbClick);	
+         									   var optionText = ie.options[ie.selectedIndex].text;
+          									   saveField(fieldName, ie.value, td, optionText, elementOriginalValue, tdOnDbClick);	
           								  });
           	ie.addEventListener("keyup", function(event) {
           									if(event.keyCode === 27){
-          									   var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
-          									   var elementOriginalValue = td.parentElement.getAttribute(elementName);
           									   console.log("Will restore original value of "+elementName+ " with "+ elementOriginalValue); 
-          									   restoreInnerHtml(td, elementOriginalValue, tdOnDbClick);
+          									   restoreInnerHtml(td, originalInnerHTML, tdOnDbClick);
           									   return;
           								   }
           								});
           }
          
-         function enableSelectForCapitolo(td, id, pixelWidth, value) {
+         function enableSelectForCapitolo(td, id, pixelWidth) {
          	
          	var ie = createSelectTag();
          	// ie.setAttribute("style", "width:"+pixelWidth+"px");
@@ -403,16 +419,19 @@
          	// removing the double click from tunneling
          	var tdOnDbClick = td.getAttribute("ondblclick");
          	td.removeAttribute("ondblclick");
+         	var originalInnerHTML = td.innerHTML;
          	td.innerHTML = "";
-         	
+         	var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
+			var elementOriginalValue = td.parentElement.getAttribute(elementName);
+			
          	for (var i = 0; i < capitolo.length; i++) {
          		  var cap = createOptionTag();
          		  var den = capitolo[i]["denominazione"];
-				  if (value == den){
+				  if (elementOriginalValue == den){
          				cap.selected="selected";
          		  }
          		  cap.innerHTML=den;
-         		  cap.setAttribute("myid", capitolo[i]["id"]);
+         		  cap.setAttribute("value", capitolo[i]["id"]);
          		  ie.appendChild(cap);
          	}
          	
@@ -420,24 +439,23 @@
          	ie.focus();
          	ie.addEventListener("change", function() {
          									   var fieldName = id.substring(id.indexOf("-")+1);
-         									   // TODO: add change to voce
-         									   // TODO: check where the selected value is
-												// spesa
-         									   saveField(fieldName+'-option', ie.getAttribute("myid"), td, value, tdOnDbClick);	
+         									   var optionText = ie.options[ie.selectedIndex].text;
+         									   // TODO: add change to vocespesa
+         									   console.log('Capitolo was changed to option '+ie.value);
+         									   saveField(fieldName, ie.value, td, optionText, elementOriginalValue, tdOnDbClick);
+         									   location.reload();
          								  });
          	ie.addEventListener("keyup", function(event) {
          									if(event.keyCode === 27){
          									   // Esc key was pressed
-         									   var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
-          									   var elementOriginalValue = td.parentElement.getAttribute(elementName);
-          									   console.log("Will restore original value of "+elementName+ " with "+ elementOriginalValue); 
-          									   restoreInnerHtml(td, elementOriginalValue, tdOnDbClick);
+         									   console.log("Will restore original value of "+elementName+ " with "+ elementOriginalValue); 
+          									   restoreInnerHtml(td, originalInnerHTML, tdOnDbClick);
           									   return;
          								   }
          								});
          }
          
-         function enableSelectForFornitore(td, id, pixelWidth, value) {
+         function enableSelectForFornitore(td, id, pixelWidth) {
          	
          	var ie = createSelectTag();
          	// ie.setAttribute("style", "width:"+pixelWidth+"px");
@@ -451,18 +469,21 @@
          	// removing the double click from tunneling
          	var tdOnDbClick = td.getAttribute("ondblclick");
          	td.removeAttribute("ondblclick");
+         	var originalInnerHTML = td.innerHTML;
          	td.innerHTML = "";
-         	
+         	var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
+			var elementOriginalValue = td.parentElement.getAttribute(elementName);
+			console.log('Will focus select for '+elementName+ ' for value '+elementOriginalValue);
          	
          	for (var i = 0; i < fornitore.length; i++) {
          		  // <!-- add ID in input element -->
          		  var forn = createOptionTag();
          		  var den = fornitore[i]["denominazione"];
-         		  if (value == den){
+         		  if (elementOriginalValue == den){
          				forn.selected="selected";
          		  }
          		  forn.innerHTML=den;
-         		  forn.setAttribute("myid", fornitore[i]["id"]);
+         		  forn.setAttribute("value", fornitore[i]["id"]);
          		  ie.appendChild(forn);
          	}
          	
@@ -470,15 +491,15 @@
          	ie.focus();
          	ie.addEventListener("change", function() {
          									   var fieldName = id.substring(id.indexOf("-")+1);
-         									   saveField(fieldName, ie.value, td, value, tdOnDbClick);	
+         									   var optionText = ie.options[ie.selectedIndex].text;
+         									   saveField(fieldName, ie.value, td, optionText, elementOriginalValue, tdOnDbClick);
+         									   location.reload();
          								  });
          	ie.addEventListener("keyup", function(event) {
          									if(event.keyCode === 27){
          									   // Esc key was pressed
-         									   var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
-          									   var elementOriginalValue = td.parentElement.getAttribute(elementName);
-          									   console.log("Will restore original value of "+elementName+ " with "+ elementOriginalValue); 
-          									   restoreInnerHtml(td, elementOriginalValue, tdOnDbClick);
+         									   console.log("Will restore original value of "+elementName+ " with "+ elementOriginalValue); 
+          									   restoreInnerHtml(td, originalInnerHTML, tdOnDbClick);
           									   return;
          								   }
          								});
@@ -495,6 +516,8 @@
          	ie.setAttribute("aria-label", ariaLabel);
          	ie.setAttribute("aria-describedby", "basic-addon2");
          	ie.setAttribute("title", "Cambia data per salvare i dati");
+         	var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
+			var elementOriginalValue = td.parentElement.getAttribute(elementName);
          	var undef;
          	if (value != undef && value != "") {
          		var splitted = value.split("\/");
@@ -508,8 +531,6 @@
          	ie.addEventListener("keyup", function(event) {
          									if(event.keyCode === 27){
          									   // Esc key was pressed
-         									   var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
-           									   var elementOriginalValue = td.parentElement.getAttribute(elementName);
            									   console.log("Will restore original value of "+elementName+ " with "+ elementOriginalValue); 
            									   restoreInnerHtml(td, elementOriginalValue, tdOnDbClick);
            									   return;
@@ -658,7 +679,7 @@
 					var td = createTdTag();
 					td.setAttribute("id", id+"-"+field+"-td");
 					var doubleClick = dbclicks[j].replace("myid", id);
-					doubleClick = doubleClick.replace("myvalue", value);
+					//doubleClick = doubleClick.replace("myvalue", value);
 					td.setAttribute("ondblclick", doubleClick);
 					td.innerHTML=value;
 					tr.appendChild(td);
