@@ -114,7 +114,8 @@ public class DB {
 					}
 					String sql = FatturaPropertyNames.CAPITOLO.equals(pn) ? CONTABILITAQUERY.FATTURA_CAPITOLO_UPDATE_QUERY
 							.getQuery()
-							: CONTABILITAQUERY.GENERAL_FATTURA_UPDATE_QUERY
+							: FatturaPropertyNames.DATADECRETO.equals(pn) ? CONTABILITAQUERY.FATTURA_DATADECRETO_UPDATE_QUERY
+									.getQuery() : CONTABILITAQUERY.GENERAL_FATTURA_UPDATE_QUERY
 									.getQuery().replaceAll(DB.updatePattern,
 											pn.getDbColumn());
 					PreparedStatement ps;

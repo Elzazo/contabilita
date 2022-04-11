@@ -26,6 +26,7 @@ public enum CONTABILITAQUERY implements PersistenceQuery{
 			+ "LEFT JOIN vocespesa vs ON vs.id = f.vocespesaid;", new FatturaMapper()),
 	GENERAL_FATTURA_UPDATE_QUERY("UPDATE fattura SET "+DB.updatePattern+ " = ? WHERE id = ?", null),
 	FATTURA_CAPITOLO_UPDATE_QUERY("UPDATE fattura SET capitoloid = ?, vocespesaid=NULL WHERE id = ?", null),
+	FATTURA_DATADECRETO_UPDATE_QUERY("UPDATE decreto SET datadecreto = ?  WHERE id IN (SELECT f.decretoid FROM fattura f WHERE f.id = ?)", null),
 	FATTURA_NULL_VOCESPESA_UPDATE_QUERY("UPDATE fattura "
 			+ "SET vocespesaid = s.voceid "
 			+ "FROM ("
