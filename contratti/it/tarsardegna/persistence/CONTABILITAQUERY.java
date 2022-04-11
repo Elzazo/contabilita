@@ -18,12 +18,21 @@ public enum CONTABILITAQUERY implements PersistenceQuery{
 			+ "f.importo, f.oggetto, f.mese, f.prestazione, f.datasdi AS datasdi, "
 			+ "f.scadenza, f.eserciziospesa, vs.denominazione as vocespesa, forn.denominazione AS fornitore,"
 			+ " contr.denominazione AS contratto, d.id AS numerodecreto ,d.datadecreto "
-			+ "FROM fattura f, fornitore forn, decreto d, capitolo cap, contratto contr, vocespesa vs "
-			+ "WHERE forn.id = f.fornitoreid AND f.decretoid = d.id AND cap.id = f.capitoloid "
-			+ "AND contr.id = f.contrattoId AND vs.id = f.vocespesaid;", new FatturaMapper()),
+			+ "FROM fattura f "
+			+ "LEFT JOIN fornitore forn ON forn.id = f.fornitoreid "
+			+ "LEFT JOIN decreto d ON f.decretoid = d.id "
+			+ "LEFT JOIN capitolo cap ON cap.id = f.capitoloid "
+			+ "LEFT JOIN contratto contr ON contr.id = f.contrattoId "
+			+ "LEFT JOIN vocespesa vs ON vs.id = f.vocespesaid;", new FatturaMapper()),
 	GENERAL_FATTURA_UPDATE_QUERY("UPDATE fattura SET "+DB.updatePattern+ " = ? WHERE id = ?", null),
 	FATTURA_CAPITOLO_UPDATE_QUERY("UPDATE fattura SET capitoloid = ?, vocespesaid=NULL WHERE id = ?", null),
-	FATTURA_NULL_VOCESPESA_UPDATE_QUERY("UPDATE fattura f SET f.vocespesaid = s.id FROM vocespesa s WHERE f.vocespesaid IS NULL AND f.capitoloid = s.capitoloid AND s.denominazione = 'Nessuna voce spesa'", null);
+	FATTURA_NULL_VOCESPESA_UPDATE_QUERY("UPDATE fattura "
+			+ "SET vocespesaid = s.voceid "
+			+ "FROM ("
+			+ "	SELECT v.id AS voceid, v.capitoloid AS capid "
+			+ "FROM vocespesa v "
+			+ "WHERE v.denominazione = 'Nessuna voce spesa') s "
+			+ "WHERE vocespesaid IS NULL AND capitoloid = s.capid", null);
 	
 	private String query;
 	private QueryMapper mapper;

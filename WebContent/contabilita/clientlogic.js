@@ -68,17 +68,17 @@
            													    console.log('UpdateFattureResult: ['+data+']');
            													    if ("OK" == data){
            													    	//alert('Campo '+fieldName+' aggiornato correttamente.');
-           													    	restoreInnerHtml(td, tdValue, tdOnDbClick);
+           													    	restoreInnerHtml(td, fieldValue, tdOnDbClick);
            													    	//TODO: fix numeric fields (importo)
            													    	td.parentElement.setAttribute(fieldName, fieldValue);
            														}else {
-           															alert('Errore durante l\'aggiornamento del campo '+displayName+ ' con il valore '+fieldValue);
+           															alert('Errore durante l\'aggiornamento del campo '+displayName+ ' con il valore '+fieldValue+ ' sarà ripristinato '+originalValue);
            		         											restoreInnerHtml(td, originalValue, tdOnDbClick);
            		           										}
            														
            													}
            													   ).fail(function() {
-           																alert('Errore durante l\'aggiornamento del campo '+displayName+ ' con il valore '+fieldValue);
+           																alert('Errore durante l\'aggiornamento del campo '+displayName+ ' con il valore '+fieldValue+ ' sarà ripristinato '+originalValue);
          											restoreInnerHtml(td, originalValue, tdOnDbClick);
            																}
            													          );
@@ -246,13 +246,15 @@
          	ie.setAttribute("aria-describedby", "basic-addon2");
          	ie.setAttribute("title", "Premi Invio per salvare i dati, Esc per annullare");
          	var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
-         	var elementOriginalValue = td.parentElement.getAttribute(elementName);
+         	let elementOriginalValue = td.parentElement.getAttribute(elementName);
          	if (numericValue === undefined){
          		ie.setAttribute("value", elementOriginalValue);
+         		
          	}else {
          		ie.setAttribute("value", numericValue);
          	}
-			console.log("Original value of "+elementName+ " is "+ elementOriginalValue);
+         	ie.setAttribute("originalValue", ie.getAttribute("value"));
+         	console.log("Original value of "+elementName+ " is "+ ie.getAttribute("originalValue"));
          	// removing the double click from tunneling
          	var tdOnDbClick = td.getAttribute("ondblclick");
          	td.removeAttribute("ondblclick");
@@ -274,7 +276,9 @@
 												// saving...
          										var fieldName = id.substring(id.indexOf("-")+1);
          										var fieldValue = ie.getAttribute("value");
-         										saveField(fieldName, ie.value, td, elementOriginalValue, elementOriginalValue, tdOnDbClick);
+         										var elementOriginalValue = ie.getAttribute("originalValue");
+         										console.log('Save field with --> {'+fieldName+', '+ie.value+', '+td+', '+elementOriginalValue+'}');
+         										saveField(fieldName, ie.value, td,elementOriginalValue , elementOriginalValue, tdOnDbClick);
          									}
          								});
          								

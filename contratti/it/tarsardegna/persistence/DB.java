@@ -141,9 +141,21 @@ public class DB {
 							ps.execute();
 						}
 					} catch (SQLException e) {
+						try {
+							c.rollback();
+						} catch (Exception e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
 						e.printStackTrace();
 						return false;
 					} catch (ParseException e) {
+						try {
+							c.rollback();
+						} catch (SQLException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
 						System.err.println("Error parsing date");
 						return false;
 					}
