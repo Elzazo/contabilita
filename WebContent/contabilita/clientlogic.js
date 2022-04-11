@@ -68,7 +68,14 @@
            													    console.log('UpdateFattureResult: ['+data+']');
            													    if ("OK" == data){
            													    	//alert('Campo '+fieldName+' aggiornato correttamente.');
-           													    	restoreInnerHtml(td, fieldValue, tdOnDbClick);
+           													    	var toRestore = fieldValue;
+           													    	if (isFloatingPointField(fieldName)){
+           													    		console.log('Field '+fieldName+' is floating point, will set to '+parseFloat(toRestore).toLocaleString());
+           													    		toRestore = parseFloat(toRestore).toLocaleString();
+           													    	} else {
+           													    		console.log('Field '+fieldName+' is not a floating point field');
+           													    	}
+           													    	restoreInnerHtml(td, toRestore, tdOnDbClick);
            													    	//TODO: fix numeric fields (importo)
            													    	td.parentElement.setAttribute(fieldName, fieldValue);
            														}else {
