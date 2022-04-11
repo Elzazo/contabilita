@@ -14,7 +14,7 @@ public enum FatturaPropertyNames {
 
 	ID("id", Types.INTEGER), CAPITOLO("capitolo", Types.INTEGER, "capitoloid"), NUMERO(
 			"numero"), DATASDI("datasdi", Types.DATE), SCADENZA("scadenza",
-			Types.DATE), ESERCIZIO("eserciziospesa"), IMPORTO("importo",
+			Types.DATE), ESERCIZIO("eserciziospesa", Types.INTEGER), IMPORTO("importo",
 			Types.FLOAT), CONTRATTO("contratto", Types.INTEGER, "contrattoid"), FORNITORE(
 			"fornitore", Types.INTEGER, "fornitoreid"), OGGETTO("oggetto"), PRESTAZIONE(
 			"prestazione"), MESE("mese"), VOCEDISPESA("vocespesa",

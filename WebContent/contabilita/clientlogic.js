@@ -294,7 +294,9 @@
         	 myvalue = myvalue.replace(',', '.');
         	 var inputElement = enableTextInputElement(td, id, pixelWidth, placeholder,ariaLabel, myvalue);
         	 inputElement.setAttribute("type", "number");
-        	 inputElement.setAttribute("step", ".01");
+        	 if (isFloatingPointField(id.substring(id.lastIndexOf("-") + 1))){ 
+        		 inputElement.setAttribute("step", ".01");
+        	 }
          }
          
          function enableSelectForContratto(td, id, pixelWidth) {
@@ -522,11 +524,13 @@
          	ie.setAttribute("title", "Cambia data per salvare i dati");
          	var elementName = ieId.substring(ie.getAttribute("id").lastIndexOf("-") + 1);
 			var elementOriginalValue = td.parentElement.getAttribute(elementName);
+			console.log(elementName+' original value is '+elementOriginalValue);
          	var undef;
-         	if (value != undef && value != "") {
-         		var splitted = value.split("\/");
+         	if (elementOriginalValue != undef && elementOriginalValue != "") {
+         		var splitted = elementOriginalValue.split("\/");
          		ie.setAttribute("value", splitted[2]+"-"+splitted[1]+"-"+splitted[0]);
          	}
+         	console.log('Actual value for the date is '+ie.getAttribute('value'));
          	// removing the double click from tunneling
          	var tdOnDbClick = td.getAttribute("ondblclick");
          	td.removeAttribute("ondblclick");
@@ -544,7 +548,7 @@
          										// Enter Key was pressed,
 												// saving...
          										var fieldName = id.substring(id.indexOf("-")+1);
-         										saveField(fieldName, ie.value, td, value, tdOnDbClick);
+         										saveField(fieldName, ie.value, td, elementOriginalValue, elementOriginalValue, tdOnDbClick);
          									}
          								});
          	ie.addEventListener("input", function() {
@@ -552,7 +556,7 @@
          									   var fieldValue = ie.value;
          									   var s = fieldValue.split('-');
          									   var actualValue = s[2]+"\/"+s[1]+"\/"+s[0];
-         									   saveField(fieldName, actualValue, td, value, tdOnDbClick);	
+         									   saveField(fieldName, actualValue, td, elementOriginalValue, elementOriginalValue, tdOnDbClick);	
          								  });
          								
          	td.innerHTML = "";
@@ -765,6 +769,10 @@
 		 
 		 function isNumericField(fieldName) {
 			return IMPORTO == fieldName || DECRETOSG == fieldName;
+		 }
+		 
+		 function isFloatingPointField(fieldName) {
+			 return IMPORTO == fieldName;
 		 }
 		 
 		 function getDateFromString(dateToParse) {

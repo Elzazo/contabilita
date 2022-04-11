@@ -129,7 +129,7 @@ public class DB {
 							ps.setFloat(1, Float.parseFloat(es.getValue()[0]));
 						} else if (Types.DATE == pn.getType()) {
 							ps.setDate(1, new Date(new SimpleDateFormat(
-									"dd-MM-yyyy").parse(es.getValue()[0])
+									"dd/MM/yyyy").parse(es.getValue()[0])
 									.getTime()));
 						}
 
