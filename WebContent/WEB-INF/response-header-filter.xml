@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<response-header-mapper>
+	<!-- generic rule for all html requests -->
+	<mapping url="(.*).html">
+		<default>
+			<response-headers>
+				<header key="Cache-Control" value="no-cache, no-store, must-revalidate, max-age=0" />
+			</response-headers>
+		</default>
+	</mapping>
+</response-header-mapper>

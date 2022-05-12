@@ -46,10 +46,7 @@ public class DB {
 		try {
 			Class.forName(POSTGRES_DRIVER);
 			for (Schema s : Schema.values()) {
-				Connection conn = DriverManager.getConnection(DB_URL, DB_USER,
-						DB_PASS);
-				conn.setAutoCommit(false);
-				conn.setSchema(s.getSchemaName());
+				Connection conn = createConnectionBySchema(s);
 				connections.put(s, conn);
 			}
 			connectionSuccessful = true;
@@ -74,6 +71,8 @@ public class DB {
 		isConnected = true;
 		return true;
 	}
+
+	
 
 	public static List<Jsonable> doQuery(Schema schema, PersistenceQuery query) {
 		List<Jsonable> result = new ArrayList<>();
@@ -115,10 +114,12 @@ public class DB {
 					String sql = FatturaPropertyNames.CAPITOLO.equals(pn) ? CONTABILITAQUERY.FATTURA_CAPITOLO_UPDATE_QUERY
 							.getQuery()
 							: FatturaPropertyNames.DATADECRETO.equals(pn) ? CONTABILITAQUERY.FATTURA_DATADECRETO_UPDATE_QUERY
-									.getQuery() : CONTABILITAQUERY.GENERAL_FATTURA_UPDATE_QUERY
-									.getQuery().replaceAll(DB.updatePattern,
-											pn.getDbColumn());
-					PreparedStatement ps;
+									.getQuery()
+									: CONTABILITAQUERY.GENERAL_FATTURA_UPDATE_QUERY
+											.getQuery().replaceAll(
+													DB.updatePattern,
+													pn.getDbColumn());
+					PreparedStatement ps = null;
 					try {
 						ps = c.prepareStatement(sql);
 
@@ -130,20 +131,24 @@ public class DB {
 							ps.setFloat(1, Float.parseFloat(es.getValue()[0]));
 						} else if (Types.DATE == pn.getType()) {
 							ps.setDate(1, new Date(new SimpleDateFormat(
-									"dd/MM/yyyy").parse(es.getValue()[0])
+									"yyyy-MM-dd").parse(es.getValue()[0])
 									.getTime()));
 						}
 
 						ps.setInt(2, id);
 						ps.execute();
-						
-						if (FatturaPropertyNames.CAPITOLO.equals(pn)){
-							ps = c.prepareStatement(CONTABILITAQUERY.FATTURA_NULL_VOCESPESA_UPDATE_QUERY.getQuery());
+
+						if (FatturaPropertyNames.CAPITOLO.equals(pn)) {
+							ps = c.prepareStatement(CONTABILITAQUERY.FATTURA_NULL_VOCESPESA_UPDATE_QUERY
+									.getQuery());
 							ps.execute();
 						}
 					} catch (SQLException e) {
 						try {
-							c.rollback();
+							if (ps != null) {
+								ps.close();
+							}
+							closeConnectionAndRenew(c, schema);
 						} catch (Exception e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
@@ -151,13 +156,22 @@ public class DB {
 						e.printStackTrace();
 						return false;
 					} catch (ParseException e) {
+						System.err.println("Error parsing date");
 						try {
-							c.rollback();
+							if (ps != null) {
+								System.err
+										.println("The following update has not been executed: "
+												+ sql);
+								ps.close();
+							}
+							System.err.println("Prepared statement closed.");
+							closeConnectionAndRenew(c, schema);
+							System.err
+									.println("Transaction has been rolled back.");
 						} catch (SQLException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						}
-						System.err.println("Error parsing date");
 						return false;
 					}
 				}
@@ -170,5 +184,27 @@ public class DB {
 			}
 		}
 		return true;
+	}
+	
+	private static Connection createConnectionBySchema(Schema s) throws SQLException {
+		Connection conn = DriverManager.getConnection(DB_URL, DB_USER,
+				DB_PASS);
+		conn.setAutoCommit(false);
+		conn.setSchema(s.getSchemaName());
+		return conn;
+	}
+
+	private static void closeConnectionAndRenew(Connection c, Schema schema) {
+		if (c != null && schema != null) {
+			System.out.println("Renewing connection for schema "+schema.getSchemaName());
+			try {
+				c.rollback();
+				c.close();
+				connections.put(schema, createConnectionBySchema(schema));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
 	}
 }

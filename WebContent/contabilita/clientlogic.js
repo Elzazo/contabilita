@@ -72,8 +72,16 @@
            													    	if (isFloatingPointField(fieldName)){
            													    		console.log('Field '+fieldName+' is floating point, will set to '+parseFloat(toRestore).toLocaleString());
            													    		toRestore = parseFloat(toRestore).toLocaleString();
+           													    	} else if (isDateField(fieldName)) {
+           													    		var splittedBstrDate = fieldValue.split('-');
+           													    		var parsedDate = splittedBstrDate[2]+'/'+splittedBstrDate[1]+'/'+splittedBstrDate[0];
+           													    		fieldValue = parsedDate;
+           													    		toRestore = parsedDate;
+           													    		console.log('Field '+fieldName+' is date, will set parent '+fieldName+' value to '+parsedDate);
+           													    	} else if (isOptionField(fieldName)) {
+           													    		toRestore = tdValue;
            													    	} else {
-           													    		console.log('Field '+fieldName+' is not a floating point field');
+           													    		console.log('Field '+fieldName+' is not a floating point/date field');
            													    	}
            													    	restoreInnerHtml(td, toRestore, tdOnDbClick);
            													    	//TODO: fix numeric fields (importo)
@@ -781,6 +789,11 @@
 		 function isFloatingPointField(fieldName) {
 			 return IMPORTO == fieldName;
 		 }
+		 
+		 function isOptionField(fieldName) {
+			return CAPITOLO == fieldName || VOCESPESA == fieldName || FORNITORE == fieldName || CONTRATTO == fieldName;
+		 }
+		 
 		 
 		 function getDateFromString(dateToParse) {
 		     var fields = dateToParse.split('\/');
