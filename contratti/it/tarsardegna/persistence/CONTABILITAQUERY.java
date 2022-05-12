@@ -23,7 +23,8 @@ public enum CONTABILITAQUERY implements PersistenceQuery{
 			+ "LEFT JOIN decreto d ON f.decretoid = d.id "
 			+ "LEFT JOIN capitolo cap ON cap.id = f.capitoloid "
 			+ "LEFT JOIN contratto contr ON contr.id = f.contrattoId "
-			+ "LEFT JOIN vocespesa vs ON vs.id = f.vocespesaid;", new FatturaMapper()),
+			+ "LEFT JOIN vocespesa vs ON vs.id = f.vocespesaid "
+			+ "WHERE NOT f.annullato;", new FatturaMapper()),
 	GENERAL_FATTURA_UPDATE_QUERY("UPDATE fattura SET "+DB.updatePattern+ " = ? WHERE id = ?", null),
 	FATTURA_CAPITOLO_UPDATE_QUERY("UPDATE fattura SET capitoloid = ?, vocespesaid=NULL WHERE id = ?", null),
 	FATTURA_DATADECRETO_UPDATE_QUERY("UPDATE decreto SET datadecreto = ?  WHERE id IN (SELECT f.decretoid FROM fattura f WHERE f.id = ?)", null),
@@ -33,7 +34,9 @@ public enum CONTABILITAQUERY implements PersistenceQuery{
 			+ "	SELECT v.id AS voceid, v.capitoloid AS capid "
 			+ "FROM vocespesa v "
 			+ "WHERE v.denominazione = 'Nessuna voce spesa') s "
-			+ "WHERE vocespesaid IS NULL AND capitoloid = s.capid", null);
+			+ "WHERE vocespesaid IS NULL AND capitoloid = s.capid", null),
+	DELETE_FATTURA_QUERY("UPDATE fattura SET annullato = true WHERE id = ?", null);
+	
 	
 	private String query;
 	private QueryMapper mapper;

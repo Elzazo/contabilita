@@ -24,7 +24,7 @@ public class ResponseHeaderFilter implements Filter {
 	}
 
 	private void addHeaders(HttpServletRequest request, HttpServletResponse response) {
-		System.out.println("Adding headers to response...");
+		//System.out.println("Adding headers to response...");
 		response.setBufferSize(0);
 		for (int i = 0; i < headers.length; i++)
 			response.setHeader(headers[i], values[i]);
@@ -33,7 +33,7 @@ public class ResponseHeaderFilter implements Filter {
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response,
 			FilterChain chain) throws IOException, ServletException {
-		System.out.println("Filtering the request...");
+		//System.out.println("Filtering the request...");
 		if (response instanceof HttpServletResponse)
 			addHeaders((HttpServletRequest) request, (HttpServletResponse) response);
 		chain.doFilter(request, response);

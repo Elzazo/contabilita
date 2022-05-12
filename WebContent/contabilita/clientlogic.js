@@ -17,32 +17,36 @@
          var idList=[CAPITOLO, FATTURA, DATASDI, IMPORTO, OGGETTO, MESE, PRESTAZIONE, 
                      SCADENZA, ESERCIZIOSPESA,  VOCESPESA, FORNITORE, CONTRATTO, DECRETOSG, DATADECRETO];
                   
-// -----------------------CONSTANTS DEFINITION END-----------------------------------------------         
+// -----------------------CONSTANTS DEFINITION
+// END-----------------------------------------------
 
 
 
 
 
-//---------------------------------------------------- AJAX CALLS START --------------------------------------------------------
+// ---------------------------------------------------- AJAX CALLS START
+// --------------------------------------------------------
 
 
          function ajaxDeleteRow(id, name){
-           	    $.post( '../postDelete.html', id, function(){
-           													// nothing to do,
-															// will check the
-															// results
-           												}).done(function() {
-           														alert('Fattura '+name+' cancellata correttamente.');
-           														deleteRow(id);
-           														}
-           													   ).fail(function() {
-           																alert('Errore durante la cancellazione della fattura '+name);
-           																}
-           													          );
-           }
-         
-           function deleteRow(id){
-         document.getElementById(id).remove();
+        	 var arg = {};
+        	 arg["id"] = id;
+        	 $.post( '../DeleteFatture', arg , function(){
+					// nothing to do,
+					// will check the
+					// results
+				}).done(function(data) {
+					    console.log('DeleteFattureResult: ['+data+']');
+					    if ("OK" == data){
+					    	var el = document.getElementById("tr-"+id);
+					    	el.parentElement.removeChild(el);
+					    	alert('Fattura '+name+' rimossa correttamente.');
+						}else {
+							alert('Errore durante la cancellazione della fattura '+name);
+						}
+					}).fail(function() {
+						   alert('Errore durante la cancellazione della fattura '+name);
+								});
            }
            
            function saveRow(id, name){
@@ -67,7 +71,10 @@
            												}).done(function(data) {
            													    console.log('UpdateFattureResult: ['+data+']');
            													    if ("OK" == data){
-           													    	//alert('Campo '+fieldName+' aggiornato correttamente.');
+           													    	// alert('Campo
+																	// '+fieldName+'
+																	// aggiornato
+																	// correttamente.');
            													    	var toRestore = fieldValue;
            													    	if (isFloatingPointField(fieldName)){
            													    		console.log('Field '+fieldName+' is floating point, will set to '+parseFloat(toRestore).toLocaleString());
@@ -84,7 +91,10 @@
            													    		console.log('Field '+fieldName+' is not a floating point/date field');
            													    	}
            													    	restoreInnerHtml(td, toRestore, tdOnDbClick);
-           													    	//TODO: fix numeric fields (importo)
+           													    	// TODO: fix
+																	// numeric
+																	// fields
+																	// (importo)
            													    	td.parentElement.setAttribute(fieldName, fieldValue);
            														}else {
            															alert('Errore durante l\'aggiornamento del campo '+displayName+ ' con il valore '+fieldValue+ ' sarà ripristinato '+originalValue);
@@ -192,9 +202,11 @@
 			return rows;
 		 }
          
-		//---------------------------------------------------- AJAX CALLS END --------------------------------------------------------
+		// ---------------------------------------------------- AJAX CALLS END
+		// --------------------------------------------------------
          
-		//---------------------------------------------------- DOM MANIPULATION CALLS START --------------------------------------------------------
+		// ---------------------------------------------------- DOM MANIPULATION
+		// CALLS START --------------------------------------------------------
 		 
 		 var dbclicks = ["enableSelectForCapitolo(this, 'myid-"+CAPITOLO+"', 90);",
 		        		 "enableTextInputElement(this, 'myid-"+FATTURA+"', 100, 'Es. 1/PA', 'Numero della fattura');",
@@ -355,7 +367,8 @@
          									   var fieldName = id.substring(id.indexOf("-")+1);
          									   var optionText = ie.options[ie.selectedIndex].text;
          									   saveField(fieldName, ie.value, td, optionText, elementOriginalValue, tdOnDbClick);
-         									   location.reload(); // restores combos
+         									   location.reload(); // restores
+																	// combos
          								  });
          	ie.addEventListener("keyup", function(event) {
          									if(event.keyCode === 27){
@@ -580,7 +593,8 @@
          					
          }
         
-       //---------------------------------------------------- DOM MANIPULATION CALLS START --------------------------------------------------------      
+       // ---------------------------------------------------- DOM MANIPULATION
+		// CALLS START --------------------------------------------------------
          
          // holds the current state of each edit entire row image
          var toggleEditMap = new Map();
@@ -679,6 +693,7 @@
 				var data = rows[i];
 				var id = data["id"];
 				var tr = createTrTag();
+				tr.setAttribute("id", "tr-"+id);
 				{
 					// adding the checkbox
 					var td = document.createElement("td");
@@ -702,7 +717,7 @@
 					var td = createTdTag();
 					td.setAttribute("id", id+"-"+field+"-td");
 					var doubleClick = dbclicks[j].replace("myid", id);
-					//doubleClick = doubleClick.replace("myvalue", value);
+					// doubleClick = doubleClick.replace("myvalue", value);
 					td.setAttribute("ondblclick", doubleClick);
 					td.innerHTML=value;
 					tr.appendChild(td);
@@ -737,7 +752,7 @@
 						td.appendChild(a);
 					}
 					{
-					    var fattura = data["fattura"];
+					    var fattura = data[FATTURA];
 						var a = createATag();
 						a.setAttribute("style", "text-decoration:none;");
 						a.setAttribute("onclick", onclick="if (window.confirm('Cancellare la fattura "+fattura+"?')) { ajaxDeleteRow('"+id+"', '"+fattura+"');}");;

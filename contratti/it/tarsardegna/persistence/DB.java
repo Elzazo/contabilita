@@ -96,6 +96,27 @@ public class DB {
 		}
 		return result;
 	}
+	
+	public static boolean deleteFattura(Schema schema, Map<String, String[]> map) {
+		if (map != null) {
+			if (map.containsKey("id")) {
+				int id = Integer.parseInt(map.get("id")[0]);
+				initDB();
+				Connection c = connections.get(schema);
+				try {
+					PreparedStatement ps = c.prepareStatement(CONTABILITAQUERY.DELETE_FATTURA_QUERY.getQuery());
+					ps.setInt(1, id);
+					ps.execute();
+					c.commit();
+					ps.close();
+					return true;
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return false;
+	}
 
 	public static boolean updateFattura(Schema schema, Map<String, String[]> map) {
 		if (map != null) {
