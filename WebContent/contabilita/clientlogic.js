@@ -179,14 +179,17 @@
 			 	"text");
 		 }
 		 
-		 function doGet(url){
+		 function doGet(url, postFunction = '', postFunctionData = ''){
 			$.get( url, {}, function(data) { 
 								var oResult = $.parseJSON(data);
 								rows = oResult["result"];
 								// only for the first time we sort desc by data
 								// fattura
 								sortDown(DATASDI);
-								drawTableBody();								
+								drawTableBody();
+								if (postFunction != ''){
+									postFunction(postFunctionData);
+								}
 							}, 
 				"text");
 		 }
@@ -252,6 +255,11 @@
          
          function createOptionTag() {
          	return document.createElement("option");
+         }
+         
+         function setPaleYellonOnTr(trId){
+        	 console.log("Will color row with id:"+trId);
+        	 document.getElementById("tr-"+trId).setAttribute("style","background-color:#FFFFA7");
          }
          
          
@@ -622,7 +630,10 @@
          		}else {
          			// propagating an Esc hit to disable editing
          			event=new KeyboardEvent("keyup", { key: "Esc", code: 27, keyCode: 27 } );
-         			document.getElementById(rowId+"-"+idList[i]).dispatchEvent(event);
+         			var elById = document.getElementById(rowId+"-"+idList[i]);
+         			if (elById != null){
+         				elById.dispatchEvent(event);
+         			}
          		}
          	}
          	
@@ -655,6 +666,35 @@
 		 function doDrawTableBody() {
 			 loadOptionValues();
 			 getFatture();
+		 }
+		 
+		 
+		 function promptCloneRow(id, name){
+			 if (window.confirm('Creare una dopia della fattura '+name+'?')){
+				 cloneRow(id);
+		     }
+		 }
+		 
+		 function cloneRow(id){
+			 // cloning the rown in the database
+			 var args = {};
+			 args["id"] = id;
+			 $.get( '../CloneFatture', args, function(data) {
+				   if ("-1" == data){
+					   window.alert("Errore durante la copia della fattura");
+					   return;
+				   }
+				    var toFocus = data;
+				    doGet("../ReadContratti", setPaleYellonOnTr, toFocus);
+				    
+				}, 
+	"text").fail(function() {
+			alert('Errore durante la copia della fattura');
+			}
+			);
+			 
+			 
+			 // repainting the whole 
 		 }
 		 
 		 function drawTableBody(){
@@ -742,7 +782,7 @@
 					{
 						var a = createATag();
 						a.setAttribute("style", "text-decoration:none;");
-						a.setAttribute("onclick", onclick="window.alert('Funzione di duplicazione non ancora implementata.');");
+						a.setAttribute("onclick", onclick="promptCloneRow("+id+", '"+data[FATTURA]+"');");
 						a.setAttribute("href", "#");
 						var img = createImgTag();
 						img.setAttribute("id", id+"-clone");

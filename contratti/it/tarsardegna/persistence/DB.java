@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.text.ParseException;
@@ -72,8 +73,6 @@ public class DB {
 		return true;
 	}
 
-	
-
 	public static List<Jsonable> doQuery(Schema schema, PersistenceQuery query) {
 		List<Jsonable> result = new ArrayList<>();
 		if (schema != null && query != null) {
@@ -96,7 +95,32 @@ public class DB {
 		}
 		return result;
 	}
-	
+
+	public static int cloneFattura(Schema schema, Map<String, String[]> map) {
+		if (map != null) {
+			if (map.containsKey("id")) {
+				int id = Integer.parseInt(map.get("id")[0]);
+				initDB();
+				Connection c = connections.get(schema);
+				try {
+					PreparedStatement ps = c
+							.prepareStatement(CONTABILITAQUERY.CLONE_FATTURA_QUERY
+									.getQuery());
+					ps.setInt(1, id);
+					ps.execute();
+					c.commit();
+					ResultSet rs = ps.getResultSet();
+					while (rs.next()) {
+						return ps.getResultSet().getInt(1);
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return -1;
+	}
+
 	public static boolean deleteFattura(Schema schema, Map<String, String[]> map) {
 		if (map != null) {
 			if (map.containsKey("id")) {
@@ -104,7 +128,9 @@ public class DB {
 				initDB();
 				Connection c = connections.get(schema);
 				try {
-					PreparedStatement ps = c.prepareStatement(CONTABILITAQUERY.DELETE_FATTURA_QUERY.getQuery());
+					PreparedStatement ps = c
+							.prepareStatement(CONTABILITAQUERY.DELETE_FATTURA_QUERY
+									.getQuery());
 					ps.setInt(1, id);
 					ps.execute();
 					c.commit();
@@ -206,10 +232,10 @@ public class DB {
 		}
 		return true;
 	}
-	
-	private static Connection createConnectionBySchema(Schema s) throws SQLException {
-		Connection conn = DriverManager.getConnection(DB_URL, DB_USER,
-				DB_PASS);
+
+	private static Connection createConnectionBySchema(Schema s)
+			throws SQLException {
+		Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
 		conn.setAutoCommit(false);
 		conn.setSchema(s.getSchemaName());
 		return conn;
@@ -217,7 +243,8 @@ public class DB {
 
 	private static void closeConnectionAndRenew(Connection c, Schema schema) {
 		if (c != null && schema != null) {
-			System.out.println("Renewing connection for schema "+schema.getSchemaName());
+			System.out.println("Renewing connection for schema "
+					+ schema.getSchemaName());
 			try {
 				c.rollback();
 				c.close();
