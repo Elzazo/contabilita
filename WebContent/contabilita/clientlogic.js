@@ -668,6 +668,42 @@
 			 getFatture();
 		 }
 		 
+		 function closeModal(id){
+			 var modalName="#"+id;
+			 $(modalName).modal('hide');
+		 }
+		 
+		 function saveNewFornitore(fornitoreName, postUpdateFunction = '', postUpdateArgs = ''){
+			 // cloning the rown in the database
+			 var args = {};
+			 args["denominazione"] = fornitoreName;
+			 $.get( '../AddFornitore', args, function(data) {
+				   if ("-1" == data){
+					   window.alert("Errore durante la creazione del fornitore "+fornitoreName+": DB Fail");
+					   return;
+				   }
+				   doGetDictionary(FORNITORE);
+				   alert("Fornitore "+fornitoreName+" aggiunto correttamente.");
+				    if ("" != postUpdateFunction){
+				    	postUpdateFunction(postUpdateArgs);
+				    }
+				    
+				}, 
+	"text").fail(function() {
+			alert('Errore durante la creazione del fornitore (AjaxFail)');
+			}
+			);
+			 
+			 
+			 // repainting the whole
+		 }
+		 
+		 function promptSaveNewFornitore(newFornitoreValue, modalToCloseId){
+			 if (window.confirm('Salvare il fornitore '+newFornitoreValue+'?')){
+				 saveNewFornitore(newFornitoreValue, closeModal, modalToCloseId);
+		     }
+		 }
+		 
 		 
 		 function promptCloneRow(id, name){
 			 if (window.confirm('Creare una dopia della fattura '+name+'?')){
@@ -692,9 +728,6 @@
 			alert('Errore durante la copia della fattura');
 			}
 			);
-			 
-			 
-			 // repainting the whole 
 		 }
 		 
 		 function drawTableBody(){

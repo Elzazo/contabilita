@@ -143,6 +143,33 @@ public class DB {
 		}
 		return false;
 	}
+	
+	public static int addFornitore(Schema contabilita,
+			Map<String, String[]> map) {
+		if (map != null){
+			if(map.containsKey("denominazione")){
+				String newName = map.get("denominazione")[0];
+				Connection c = connections.get(contabilita);
+				try {
+					PreparedStatement ps = c.prepareStatement(CONTABILITAQUERY.INSERT_FORNITORE_QUERY.getQuery());
+					ps.setString(1, newName);
+					ps.execute();
+					c.commit();
+					ResultSet rs = ps.getResultSet();
+					while(rs.next()){
+						int res = rs.getInt(1);
+						rs.close();
+						ps.close();
+						return res;
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		return -1;
+	}
 
 	public static boolean updateFattura(Schema schema, Map<String, String[]> map) {
 		if (map != null) {
@@ -255,4 +282,6 @@ public class DB {
 		}
 
 	}
+
+	
 }

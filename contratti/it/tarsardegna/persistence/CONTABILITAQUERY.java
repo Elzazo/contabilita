@@ -35,7 +35,8 @@ public enum CONTABILITAQUERY implements PersistenceQuery {
 			+ "FROM vocespesa v "
 			+ "WHERE v.denominazione = 'Nessuna voce spesa') s "
 			+ "WHERE vocespesaid IS NULL AND capitoloid = s.capid", null), DELETE_FATTURA_QUERY(
-			"UPDATE fattura SET annullato = true WHERE id = ?", null), CLONE_FATTURA_QUERY(
+			"UPDATE fattura SET annullato = true WHERE id = ?", null), 
+			INSERT_FORNITORE_QUERY("INSERT INTO fornitore (denominazione) VALUES (?) RETURNING id; ",null),CLONE_FATTURA_QUERY(
 			"INSERT INTO fattura (numero, importo, fornitoreid, decretoid, capitoloid,"
 			+ " contrattoid, oggetto, mese, prestazione, datasdi, scadenza, eserciziospesa, vocespesaid, autoreid) "
 			+ "SELECT numero, importo, fornitoreid, decretoid, capitoloid, contrattoid, oggetto, mese, prestazione, "

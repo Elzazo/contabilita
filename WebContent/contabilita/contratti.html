@@ -28,6 +28,41 @@
 <script src="../jquery/jquery-3.6.0.js"></script>
 <script src="clientlogic.js"></script>
 </head>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="addFornitoreModal" tabindex="-1"
+	aria-labelledby="addFornitoreModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="addFornitoreLabel">Aggiungi un
+					fornitore</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"
+					aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<div style="width: 100%">
+					<label for="newFornitoreId" class="form-label">Nuovo
+						Fornitore</label> <input type="text" class="form-control"
+						id="newFornitoreId" placeholder="...">
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary"
+						data-bs-dismiss="modal">Chiudi</button>
+					<button type="button" class="btn btn-primary" onclick="promptSaveNewFornitore(document.getElementById('newFornitoreId').value, 'addFornitoreModal');">Salva</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal"
+	data-bs-target="#addFornitoreModal" style="display:none" id="showModalFornitoreButton">Add fornitore</button>
+
+
 <body onload="doDrawTableBody();">
 	<header>
 		<div class="collapse bg-dark" id="navbarHeader">
@@ -69,29 +104,33 @@
 		</div>
 	</header>
 	<main>
-	<section class="py-5 text-center container"> <!-- class="py-5 text-center container" -->
-		<div> <!-- class="row py-lg-5" -->
-			<div> <!-- class="col-lg-6 col-md-8 mx-auto" -->
+	<section class="py-5 text-center container">
+		<!-- class="py-5 text-center container" -->
+		<div>
+			<!-- class="row py-lg-5" -->
+			<div>
+				<!-- class="col-lg-6 col-md-8 mx-auto" -->
 				<h1 class="fw-light">Monitoraggio fatture</h1>
 				<p class="lead text-muted">Sintesi delle spese affrontate dal
 					T.A.R. Sardegna in un determinato anno</p>
 			</div>
 		</div>
 	</section>
+
 	<div class="container" style="margin-left: 10px; margin-right: 10px;">
 		<table class="table table-hover table-sm w-auto">
 			<thead class="thead-light">
-			    <!-- Some columns have a style with min-width with a set value to allow table headers to be displayed in one line -->
+				<!-- Some columns have a style with min-width with a set value to allow table headers to be displayed in one line -->
 				<tr>
 					<th scope="col"></th>
-					<th class="text-center" scope="col" style="min-width: 100px;">Cap.<a style="text-decoration: none;" onclick="sortUp(CAPITOLO)"
-								href="#"> <img id="1-sortByCapUp"
-								src="../icons/arrow-up-short.svg" title="Ordina per cap (asc)" />
-							</a> <a style="text-decoration: none;" onclick="sortDown(CAPITOLO)"
-								href="#"> <img id="1-sortByCapDown"
-								src="../icons/arrow-down-short.svg"
-								title="Ordina per cap (disc)" />
-							</a>
+					<th class="text-center" scope="col" style="min-width: 100px;">Cap.<a
+						style="text-decoration: none;" onclick="sortUp(CAPITOLO)" href="#">
+							<img id="1-sortByCapUp" src="../icons/arrow-up-short.svg"
+							title="Ordina per cap (asc)" />
+					</a> <a style="text-decoration: none;" onclick="sortDown(CAPITOLO)"
+						href="#"> <img id="1-sortByCapDown"
+							src="../icons/arrow-down-short.svg" title="Ordina per cap (disc)" />
+					</a>
 					</th>
 					<th class="text-center" scope="col">Fattura<a
 						style="text-decoration: none;" onclick="sortUp(FATTURA)" href="#">
@@ -165,10 +204,10 @@
 							title="Ordina per scadenza (disc)" />
 					</a>
 					</th>
-					<th class="text-center" scope="col" style="min-width: 180px">Esercizio Spesa<a
-						style="text-decoration: none;" onclick="sortUp(ESERCIZIOSPESA)"
-						href="#"> <img id="1-sortByEsercizioSpesaUp"
-							src="../icons/arrow-up-short.svg"
+					<th class="text-center" scope="col" style="min-width: 180px">Esercizio
+						Spesa<a style="text-decoration: none;"
+						onclick="sortUp(ESERCIZIOSPESA)" href="#"> <img
+							id="1-sortByEsercizioSpesaUp" src="../icons/arrow-up-short.svg"
 							title="Ordina per esercizio spesa (asc)" />
 					</a> <a style="text-decoration: none;"
 						onclick="sortDown(ESERCIZIOSPESA)" href="#"> <img
@@ -177,8 +216,8 @@
 							title="Ordina per esercizio spesa (disc)" />
 					</a>
 					</th>
-					<th class="text-center" scope="col" style="min-width: 300px">Voce Spesa<a
-						style="text-decoration: none;" onclick="sortUp(VOCESPESA)"
+					<th class="text-center" scope="col" style="min-width: 300px">Voce
+						Spesa<a style="text-decoration: none;" onclick="sortUp(VOCESPESA)"
 						href="#"> <img id="1-sortByVoceSpesaUp"
 							src="../icons/arrow-up-short.svg"
 							title="Ordina per voce spesa (asc)" />
@@ -188,17 +227,20 @@
 							title="Ordina per voce spesa (disc)" />
 					</a>
 					</th>
-					<th class="text-center" scope="col" style="min-width: 150px">Fornitore<a
-						style="text-decoration: none;" onclick="sortUp(FORNITORE)"
-						href="#"> <img id="1-sortByFornitoreUp"
-							src="../icons/arrow-up-short.svg"
+					<th class="text-center" scope="col" style="min-width: 150px"><a
+						style="text-decoration: none;"
+						onclick="var element = document.getElementById('showModalFornitoreButton'); element.click();"
+						href="#"> <img id="addFornitore"
+							src="../icons/journal-plus.svg" title="Aggiungi un fornitore" />
+					</a>Fornitore<a style="text-decoration: none;"
+						onclick="sortUp(FORNITORE)" href="#"> <img
+							id="1-sortByFornitoreUp" src="../icons/arrow-up-short.svg"
 							title="Ordina per fornitore (asc)" />
 					</a> <a style="text-decoration: none;" onclick="sortDown(FORNITORE)"
 						href="#"> <img id="1-sortByFornitoreDown"
 							src="../icons/arrow-down-short.svg"
 							title="Ordina per fornitore (disc)" />
-					</a>
-					</th>
+					</a></th>
 					<th class="text-center" scope="col">Contratto<a
 						style="text-decoration: none;" onclick="sortUp(CONTRATTO)"
 						href="#"> <img id="1-sortByContrattoUp"
@@ -210,8 +252,8 @@
 							title="Ordina per contratto (disc)" />
 					</a>
 					</th>
-					<th class="text-center" scope="col" style="min-width: 150px">Decreto S.G.<a
-						style="text-decoration: none;" onclick="sortUp(DECRETOSG)"
+					<th class="text-center" scope="col" style="min-width: 150px">Decreto
+						S.G.<a style="text-decoration: none;" onclick="sortUp(DECRETOSG)"
 						href="#"> <img id="1-sortByDecretoUp"
 							src="../icons/arrow-up-short.svg"
 							title="Ordina per decreto (asc)" />
@@ -221,10 +263,10 @@
 							title="Ordina per decreto (disc)" />
 					</a>
 					</th>
-					<th class="text-center" scope="col" style="min-width: 150px">Data decreto<a
-						style="text-decoration: none;" onclick="sortUp(DATADECRETO)"
-						href="#"> <img id="1-sortByDataDecretoUp"
-							src="../icons/arrow-up-short.svg"
+					<th class="text-center" scope="col" style="min-width: 150px">Data
+						decreto<a style="text-decoration: none;"
+						onclick="sortUp(DATADECRETO)" href="#"> <img
+							id="1-sortByDataDecretoUp" src="../icons/arrow-up-short.svg"
 							title="Ordina per data decreto (asc)" />
 					</a> <a style="text-decoration: none;" onclick="sortDown(DATADECRETO)"
 						href="#"> <img id="1-sortByDataDecretoDown"
